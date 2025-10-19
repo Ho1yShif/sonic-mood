@@ -1,4 +1,4 @@
-import type { RecommendationResponse, ApiError } from '../types';
+import type { RecommendationResponse, ApiError, Song } from '../types';
 import { getMockRecommendations } from './mockApi';
 
 /**
@@ -11,6 +11,17 @@ import { getMockRecommendations } from './mockApi';
  * This service can switch between mock data (for development) and real API calls
  * based on the VITE_USE_MOCK_DATA environment variable.
  */
+
+// Backend response structure (snake_case)
+interface BackendSong {
+  title: string;
+  artist: string;
+}
+
+interface BackendResponse {
+  playlist_name: string;
+  songs: BackendSong[];
+}
 
 // Get API configuration from environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -88,9 +99,21 @@ export const getRecommendations = async (query: string): Promise<RecommendationR
       throw error;
     }
     
-    // Parse and return successful response
-    const data: RecommendationResponse = await response.json();
-    return data;
+    // Parse backend response
+    const backendData: BackendResponse = await response.json();
+    
+    // Transform backend response to frontend format
+    const transformedData: RecommendationResponse = {
+      playlistName: backendData.playlist_name,
+      recommendations: backendData.songs.map((song, index): Song => ({
+        id: `${song.artist}-${song.title}-${index}`.replace(/\s+/g, '-').toLowerCase(),
+        title: song.title,
+        artist: song.artist,
+        spotifyLink: null, // Backend doesn't provide this yet
+      })),
+    };
+    
+    return transformedData;
     
   } catch (error) {
     // Handle network errors or other exceptions
