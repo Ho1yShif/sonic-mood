@@ -151,6 +151,13 @@ graph LR
 - Python backend web service
 - Static site frontend
 
+**pgvector**:
+- Simplified vectorization types for storage in PostgreSQL
+- Simple, expressive semantic search that computes cosine similarity to compare embeddings in a single line of SQL:
+```sql
+SELECT song_name, band, popularity_score FROM song_embeddings ORDER BY embedding <=> :embedding LIMIT :limit;
+```
+
 ### Design decisions
 
 #### Why Fireworks AI?
@@ -180,6 +187,7 @@ Sanic is a production-ready async Python web framework that efficiently handles 
 #### Why cache Spotify links?
 
 The Spotify API imposes rate limits and adds latency to each request. Since popular songs appear more frequently in recommendations, caching links in memory (as a simple dictionary) dramatically improves response times for subsequent requests and reduces unnecessary API calls. This straightforward optimization accelerates the user experience without requiring a separate caching layer like Redis.
+
 
 ## Design & style
 
