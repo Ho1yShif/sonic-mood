@@ -106,9 +106,9 @@ VITE_USE_MOCK_DATA=false
 - Purple: `#8a05ff` - Buttons, accents, highlights along with black and white
 - Using Neue Montreal sans-serif font to align with Render sites
 - Designed custom icons in Canva:
-<img src="frontend-site/src/assets/note_white.png" alt="folder" style={{width: '50%'}} />
-<img src="frontend-site/src/assets/note_purple.png" alt="folder" style={{width: '50%'}} />
-<img src="frontend-site/src/assets/note_black.png" alt="folder" style={{width: '50%'}} />
+<img src="frontend-site/src/assets/note_purple.png" alt="custom logo purple" width="200" />
+<img src="frontend-site/src/assets/note_white.png" alt="custom logo white" width="200" />
+<img src="frontend-site/src/assets/note_black.png" alt="custom logo purple" width="200" />
 
 ## 📡 API reference
 
