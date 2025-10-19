@@ -280,6 +280,7 @@ async def process_batches_concurrently(
     concurrency: int,
     db_buffer_size: int,
     engine,
+    start_time: float,
 ) -> dict:
     """
     Process multiple batches concurrently with buffered database writes.
@@ -290,6 +291,7 @@ async def process_batches_concurrently(
         concurrency: Number of concurrent API calls
         db_buffer_size: Number of batches to buffer before writing to DB
         engine: SQLAlchemy engine
+        start_time: Start time for calculating elapsed time
 
     Returns:
         Statistics dictionary
@@ -308,6 +310,10 @@ async def process_batches_concurrently(
 
     # Buffer for database writes
     db_buffer = []
+
+    # Track milestones for progress feedback
+    last_milestone = 0
+    milestone_interval = 10000
 
     # ThreadPoolExecutor for blocking API calls
     with ThreadPoolExecutor(max_workers=concurrency) as executor:
@@ -343,6 +349,23 @@ async def process_batches_concurrently(
                     if success and embeddings_data:
                         db_buffer.extend(embeddings_data)
                         stats["embeddings_generated"] += len(embeddings_data)
+
+                        # Check for milestone feedback (every 10,000 embeddings)
+                        current_count = stats["embeddings_generated"]
+                        current_milestone = (
+                            current_count // milestone_interval
+                        ) * milestone_interval
+                        if current_milestone > last_milestone and current_milestone > 0:
+                            elapsed_time = time.time() - start_time
+                            rate = (
+                                current_count / elapsed_time if elapsed_time > 0 else 0
+                            )
+                            print(
+                                f"\n  🎵 Milestone: {current_milestone:,} embeddings processed!"
+                            )
+                            print(f"     Rate: {rate:.2f} embeddings/second")
+                            print(f"     Elapsed time: {elapsed_time:.1f}s\n")
+                            last_milestone = current_milestone
 
                 # Write to database when buffer is full or this is the last chunk
                 if (
@@ -454,7 +477,7 @@ def generate_and_store_embeddings(
     # Process songs with async/concurrent execution
     stats = asyncio.run(
         process_batches_concurrently(
-            songs, batch_size, concurrency, db_buffer_size, engine
+            songs, batch_size, concurrency, db_buffer_size, engine, start_time
         )
     )
 
