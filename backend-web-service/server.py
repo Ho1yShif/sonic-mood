@@ -6,12 +6,14 @@ from sanic import Sanic
 from sanic.log import logger
 from sanic.request import Request
 from sanic.response import json
+from sanic_cors import CORS
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 app = Sanic("InferenceBackend")
+CORS(app)
 
 client = OpenAI(
     base_url="https://api.fireworks.ai/inference/v1",
