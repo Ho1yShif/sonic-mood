@@ -185,6 +185,8 @@ async def get_recommendations(request: Request) -> dict:
     query_songs = await search_database(query_embedding, n=5)
     hyde_songs = await search_database(hyde_embedding, n=3)
     songs = query_songs + hyde_songs
+    # Remove duplicates by title and artist
+    songs = list({(song["title"], song["artist"]): song for song in songs}.values())
 
     # Step 4: Generate a title for the given songs
     logger.info("Coming up with clever playlist title...")
