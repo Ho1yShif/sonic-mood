@@ -28,12 +28,13 @@ def create_ivfflat_index():
 
     with get_connection() as conn:
         # Create the index
+        # This article recommends using lists = sqrt(rows) for datasets with more than one million rows. Thus we're using 3,525, or 12,431,127^(1/2)
         conn.execute(
             text("""
             CREATE INDEX embeddings_ivfflat_idx
             ON song_embeddings 
-            USING ivfflat (embedding vector_cosine_ops) 
-            WITH (lists = 100)
+            USING ivfflat (embedding vector_cosine_ops)
+            WITH (lists = 3525)
         """)
         )
 
