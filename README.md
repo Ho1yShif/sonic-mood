@@ -2,6 +2,90 @@
 
 Sonic Mood is an AI-powered music recommendation app that demonstrates how to deploy semantic search at scale using [Render](https://render.com) and [pgvector](https://github.com/pgvector/pgvector). Enter a mood or vibe, and receive a personalized playlist drawn from over 12 million songs.
 
+## Quickstart
+
+### Prerequisites
+
+- Python 3.9+
+- Git
+- [Render](https://render.com) account (free tier available)
+- [Fireworks AI](https://fireworks.ai) account with billing enabled
+- [Spotify Developer](https://developer.spotify.com) account (free)
+
+### Steps
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/Render-PGVector-Music-Recommender.git
+   cd Render-PGVector-Music-Recommender
+   ```
+
+1. **Create a PostgreSQL database on Render**
+   - Log in to your [Render Dashboard](https://dashboard.render.com/)
+   - Click "New +" → "PostgreSQL"
+   - Choose a name for your database
+   - Select your preferred region
+   - Choose the free tier or a paid plan
+     - This project uses a Basic-256mb paid plan with 5 GB storage (~$7.50/month)
+   - Click "Create Database"
+   - Once created, copy the "External Database URL" from the database dashboard to use for local development
+     - Once your backend service is deployed, replace that key with the "Internal Database URL"
+     - Continue to use the external URL for data processing steps
+
+1. **Set up Fireworks AI API key**
+   - Sign up at [Fireworks AI](https://fireworks.ai)
+   - **Important**: Enable billing in your account settings (required for API access)
+   - Navigate to [API Keys](https://fireworks.ai/account/api-keys)
+   - Click "Create API Key" and copy the generated key
+
+1. **Set up Spotify API credentials**
+   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   - Log in with your Spotify account
+   - Click "Create app"
+   - Fill in app name and description
+   - Set "Redirect URI" to `http://localhost:8000` (or any valid URL)
+   - Accept the terms and click "Save"
+   - Copy your "Client ID" and "Client Secret"
+
+1. **Configure environment variables**
+   ```bash
+   cd backend-web-service
+   cp .env.example .env
+   ```
+   
+   Edit the `.env` file and add your credentials:
+   ```
+   FIREWORKS_API_KEY=your_actual_fireworks_api_key
+   SPOTIFY_CLIENT_ID=your_actual_spotify_client_id
+   SPOTIFY_CLIENT_SECRET=your_actual_spotify_client_secret
+   POSTGRES_URL=your_render_external_database_url
+   ```
+
+1. **Run data processing steps:**
+   - Run `data-processing/store_songs.py` to enrich the Kaggle song data and store it in PostgreSQL
+   - Run `data-processing/generate_embeddings.py` to store vector embeddings in PostgreSQL
+
+1. **Install dependencies and run the backend**
+   ```bash
+   pip install -r requirements.txt
+   python server.py
+   ```
+   
+   The backend will start on `http://localhost:8000`
+
+1. **(Optional) Run the frontend locally**
+   ```bash
+   cd ../frontend-site
+   npm install
+   npm run dev
+   ```
+   
+   The frontend will start on `http://localhost:5173`
+
+### Next steps
+
+- For production deployment, see Render's documentation on deploying [web services](https://render.com/docs/web-services) and [static sites](https://render.com/docs/static-sites).
+
 ## Architecture
 
 ### Diagram
