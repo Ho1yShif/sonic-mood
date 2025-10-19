@@ -70,7 +70,12 @@ async def search_database(
             embedding_str = f"[{','.join(map(str, query_embedding))}]"
 
             query = text(
-                "SELECT song_name, band, popularity_score FROM song_embeddings ORDER BY embedding <=> :embedding LIMIT :limit;"
+                """SELECT s.song_name, s.band
+                FROM song_embeddings se
+                JOIN songs s ON se.song_id = s.song_id
+                ORDER BY se.embedding <=> :embedding 
+                LIMIT :limit";
+                """
             )
 
             result = conn.execute(
