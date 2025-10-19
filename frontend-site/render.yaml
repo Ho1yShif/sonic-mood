@@ -1,0 +1,25 @@
+# Render deployment configuration for Sonic Mood
+# This file configures automatic deployment to Render's Static Site service
+
+services:
+  - type: web
+    name: sonic-mood
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://your-backend-url.onrender.com/api
+      - key: VITE_USE_MOCK_DATA
+        value: false
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+

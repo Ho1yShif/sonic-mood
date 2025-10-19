@@ -1,0 +1,184 @@
+/* Tailwind CSS base styles */
+@import "tailwindcss";
+
+/* Custom font - Neue Montreal */
+/* Note: Ensure Neue Montreal font files are loaded in your project */
+
+/* CSS Reset and Base Styles */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    font-family: 'Neue Montreal', sans-serif;
+    line-height: 1.6;
+    color: #ffffff;
+    background: #121212;
+    min-height: 100vh;
+  }
+  
+  /* Screen reader only class for accessibility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+/* Custom animations and effects */
+@layer utilities {
+  /* Fade in with slide up animation */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+  
+  /* Staggered animations for cards */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  /* Stagger delays for sequential animations */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+  
+  /* Pulse animation */
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Gradient text effect */
+  .gradient-text {
+    background: linear-gradient(135deg, #ffffff 0%, #a78bfa 50%, #8a05ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Spotify-style cards */
+  .glass {
+    background: #0a0a0a;
+  }
+  
+  .glass-card {
+    background: #0a0a0a;
+  }
+  
+  /* Glow effects */
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(138, 5, 255, 0.3), 0 0 40px rgba(138, 5, 255, 0.1);
+  }
+  
+  .glow-purple-hover:hover {
+    box-shadow: 0 0 30px rgba(138, 5, 255, 0.5), 0 0 60px rgba(138, 5, 255, 0.2);
+  }
+  
+  /* Gradient borders */
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(135deg, rgba(138, 5, 255, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    margin: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #8a05ff 0%, #a78bfa 100%);
+  }
+}
+
+/* Custom scrollbar styling for webkit browsers */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #8a05ff;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6d04cc;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid #8a05ff;
+  outline-offset: 2px;
+}
+
+/* Button reset */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Link styling */
+a {
+  color: #8a05ff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
