@@ -6,3 +6,4 @@ spotipy==2.25.1
 sqlalchemy==2.0.44
 psycopg2-binary==2.9.9
 pgvector==0.2.4
+polars==1.21.0
