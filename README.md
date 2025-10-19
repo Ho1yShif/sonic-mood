@@ -215,8 +215,8 @@ Assumptions I made while building this project:
 - Modern search bar with keyboard shortcut (`Cmd+K`) functionality
 - Purple accents and highlights match Render's signature color and docs styles
 - Custom logos created in Canva
-- <img src="frontend-site/src/assets/note_purple.png" alt="custom logo purple" style={{width: '50%'}} />
-- <img src="frontend-site/src/assets/note_white.png" alt="custom logo white" style={{width: '50%'}} />
+    <img src="frontend-site/src/assets/note_purple.png" alt="custom logo purple" style={{width: '50%'}} />
+    <img src="frontend-site/src/assets/note_white.png" alt="custom logo white" style={{width: '50%'}} />
 
 ## Data processing pipeline
 
