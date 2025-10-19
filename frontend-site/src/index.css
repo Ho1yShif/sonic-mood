@@ -95,6 +95,20 @@
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   
+  /* Color fade animation for loading text */
+  @keyframes color-fade {
+    0%, 100% {
+      color: #2a2c2e;
+    }
+    50% {
+      color: #ffffff;
+    }
+  }
+  
+  .animate-color-fade {
+    animation: color-fade 3s ease-in-out infinite;
+  }
+  
   /* Gradient text effect */
   .gradient-text {
     background: linear-gradient(135deg, #ffffff 0%, #a78bfa 50%, #8a05ff 100%);

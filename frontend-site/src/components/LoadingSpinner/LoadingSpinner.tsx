@@ -35,10 +35,10 @@ export const LoadingSpinner = ({ message = "Finding your perfect songs..." }: Lo
       {/* Loading message */}
       {message && (
         <div className="text-center">
-          <p className="text-white text-lg font-semibold mb-1">
+          <p className="text-lg font-semibold mb-1 animate-color-fade">
             {message}
           </p>
-          <p className="text-spotify-text-subdued text-sm">
+          <p className="text-sm animate-color-fade">
             This won't take long
           </p>
         </div>
