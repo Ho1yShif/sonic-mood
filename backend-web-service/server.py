@@ -22,7 +22,7 @@ client = OpenAI(
     api_key=os.environ.get("FIREWORKS_API_KEY"),
 )
 
-# Initialize Spotify client
+# Initialize Spotify client (cached at module level - only initialized once)
 spotify_client_id = os.environ.get("SPOTIFY_CLIENT_ID")
 spotify_client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
 
@@ -36,6 +36,10 @@ else:
         "Spotify credentials not found. Spotify links will not be available."
     )
     spotify = None
+
+# Cache for Spotify links to avoid redundant API calls
+# Key: (title, artist) tuple, Value: Spotify link (or None if not found)
+spotify_link_cache: dict[tuple[str, str], str | None] = {}
 
 
 class Song(TypedDict):
@@ -130,12 +134,24 @@ Respond only with the name of the playlist, no other text.""",
 async def add_spotify_links(songs: list[Song]) -> list[Song]:
     """
     Search for each song on Spotify and add the Spotify link if found.
+    Uses caching to avoid redundant API calls for the same song.
     """
     if not spotify:
         logger.warning("Spotify client not initialized. Skipping Spotify links.")
         return songs
 
     for song in songs:
+        cache_key = (song["title"], song["artist"])
+
+        # Check if we already have the link cached
+        if cache_key in spotify_link_cache:
+            song["spotifyLink"] = spotify_link_cache[cache_key]
+            logger.debug(
+                f"Using cached Spotify link for {song['title']} by {song['artist']}"
+            )
+            continue
+
+        # Not in cache, fetch from Spotify API
         try:
             # Search for the song on Spotify using title and artist
             query = f"track:{song['title']} artist:{song['artist']}"
@@ -154,11 +170,16 @@ async def add_spotify_links(songs: list[Song]) -> list[Song]:
                 )
                 song["spotifyLink"] = None
 
+            # Cache the result (whether we found a link or not)
+            spotify_link_cache[cache_key] = song["spotifyLink"]
+
         except Exception as e:
             logger.error(
                 f"Error searching Spotify for {song['title']} by {song['artist']}: {e}"
             )
             song["spotifyLink"] = None
+            # Cache the None result to avoid retrying failed lookups
+            spotify_link_cache[cache_key] = None
 
     return songs
 

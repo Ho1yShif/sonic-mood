@@ -63,12 +63,13 @@ def normalize_text(text: str) -> str:
     This is a simple version that can be enhanced for better matching.
     """
     import re
+    import string
 
     if not text:
         return ""
-    # Lowercase, remove special chars, normalize spaces
+    # Lowercase, remove all punctuation, normalize spaces
     text = text.lower().strip()
-    text = re.sub(r"[^\w\s]", "", text)
+    text = text.translate(str.maketrans("", "", string.punctuation))
     text = re.sub(r"\s+", " ", text)
     return text
 
@@ -118,6 +119,13 @@ def join_tracks_and_interactions() -> pl.DataFrame:
     """
     print("Loading tracks dataset...")
     tracks_df = tracks.collect()
+
+    # Filter out songs with null song_name
+    original_count = len(tracks_df)
+    tracks_df = tracks_df.filter(pl.col("song_name").is_not_null())
+    filtered_count = len(tracks_df)
+    print(f"Filtered out {original_count - filtered_count:,} songs with null song_name")
+    print(f"Remaining tracks: {filtered_count:,}")
 
     print("Loading interactions dataset...")
     interactions_df = interactions.collect()
@@ -213,6 +221,9 @@ def join_lyrics_with_songs(
             how="left",
         )
 
+    # Add has_lyrics boolean column
+    joined = joined.with_columns(pl.col("lyrics").is_not_null().alias("has_lyrics"))
+
     # Count matches
     matched_count = joined.filter(pl.col("lyrics").is_not_null()).height
     match_rate = (matched_count / len(songs_df)) * 100 if len(songs_df) > 0 else 0
@@ -249,25 +260,12 @@ def enrich_songs_with_lyrics(
     # Join with our songs
     enriched_df = join_lyrics_with_songs(songs_df, lyrics_df, match_method)
 
-    # Filter out songs that don't have lyrics
-    print("\nFiltering out songs without lyrics...")
-    songs_before = len(enriched_df)
-    enriched_df = enriched_df.filter(pl.col("lyrics").is_not_null())
-    songs_after = len(enriched_df)
-    songs_filtered = songs_before - songs_after
-
-    print(f"  Songs before filtering: {songs_before:,}")
-    print(f"  Songs with lyrics (kept): {songs_after:,}")
-    print(f"  Songs without lyrics (filtered out): {songs_filtered:,}")
-
     # Show sample results
     print(f"\n{'=' * 80}")
-    print("Sample of enriched data (with lyrics):")
+    print("Sample of enriched data:")
     print(f"{'=' * 80}")
     if len(enriched_df) > 0:
-        sample = enriched_df.head(5).select(
-            ["song_id", "song_name", "band", "popularity_score"]
-        )
+        sample = enriched_df.head(5)
         print(sample)
     else:
         print("No matches found!")
