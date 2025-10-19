@@ -1,51 +1,125 @@
 # Sonic mood
 
-Sonic mood showcases how to use [Render](https://render.com) to deploy an AI-powered music recommendation app that leverages [pgvector](https://github.com/pgvector/pgvector) for semantic search.
-
-## Quickstart
+Sonic Mood is an AI-powered music recommendation app that demonstrates how to deploy semantic search at scale using [Render](https://render.com) and [pgvector](https://github.com/pgvector/pgvector). Enter a mood or vibe, and receive a personalized playlist drawn from over 12 million songs.
 
 ## Architecture
 
-- Song, interaction, and lyrics data along with their vector embeddings live in a Render-managed PostgreSQL database equipped with pgvector
-- The backend web service performs the following functions:
-  - Embeds user queries using [`qwen3-embedding-8b`](https://huggingface.co/Qwen/Qwen3-Embedding-8B) via [Fireworks](https://fireworks.ai/)
-  - Creates hypothetical song lyrics from the query via [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) to better match the lyrics embeddings with [HyDE techniques](https://milvus.io/ai-quick-reference/what-is-hyde-hypothetical-document-embeddings-and-when-should-i-use-it)
-  - Connects to the PostgreSQL database and uses pgvector to search the PostgreSQL database for songs that are similar to the user's query
-  - Outputs a playlist of songs that are semantically similar to the user's query
-  - Generates a short, fun playlist title to summarize its mood in the same vein as a Spotify daylist via [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507)
-  - Retrieves Spotify links to output songs when available with caching
-- The static site displays output from the backend in a delightful, clean UI
-- Render deployments:
-  - PostgreSQL database
-  - Backend web service
-  - Static site frontend
+### Diagram
+
+```mermaid
+graph LR
+    User([👤 User]) -->|Enters mood query| Frontend[🎨 Frontend<br/>Static site]
+    
+    Frontend -->|API Request| Backend[⚙️ Backend<br/>Python/Sanic]
+    
+    Backend -->|Embed query| Embedding[🤖 Qwen3-Embedding-8B]
+    Backend -->|Generate hypothetical lyrics| HyDE[🤖 Qwen3-235B<br/>HyDE technique]
+    
+    Embedding -->|Query vector| Backend
+    HyDE -->|Hypothetical lyrics| Backend
+    
+    Backend -->|Vector similarity search| DB[(💾 PostgreSQL + pgvector<br/>12M+ songs with embeddings)]
+    
+    DB -->|Matching songs| Backend
+    
+    Backend -->|Fetch track links| Spotify[🎵 Spotify API]
+    Backend -->|Generate playlist title| TitleGen[🤖 Qwen3-235B<br/>Playlist naming]
+    
+    Spotify -->|Song links| Backend
+    TitleGen -->|Creative title| Backend
+    
+    Backend -->|Personalized playlist| Frontend
+    Frontend -->|Display results| User
+    
+    style User fill:#e1d5f7,stroke:#9065d4,stroke-width:3px
+    style Frontend fill:#e1d5f7,stroke:#9065d4,stroke-width:2px
+    style Backend fill:#c9b5e8,stroke:#7340b3,stroke-width:2px
+    style DB fill:#b8ddf7,stroke:#4a8fc7,stroke-width:2px
+    style Embedding fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px
+    style HyDE fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px
+    style TitleGen fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px
+    style Spotify fill:#caffbf,stroke:#4ade80,stroke-width:2px
+```
+
+### Components
+
+**Database**: A Render-managed PostgreSQL database with pgvector extension stores 12M+ songs with their metadata, interaction statistics, lyrics, and vector embeddings.
+
+**Backend web service** (Python/Sanic): Handles user queries through the following pipeline:
+
+- Embeds user queries using [`qwen3-embedding-8b`](https://huggingface.co/Qwen/Qwen3-Embedding-8B) via [Fireworks AI](https://fireworks.ai/)
+- Generates hypothetical song lyrics matching the query using [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) and [HyDE techniques](https://milvus.io/ai-quick-reference/what-is-hyde-hypothetical-document-embeddings-and-when-should-i-use-it) for improved semantic matching
+- Performs vector similarity search against the PostgreSQL database using pgvector
+- Retrieves Spotify links for recommended songs (with in-memory caching)
+- Generates creative playlist titles via [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507), inspired by Spotify's daylist feature
+
+**Frontend** (Static site): Displays personalized playlists in a modern, responsive UI with glassmorphic elements and responsive design.
+
+**Render deployments**:
+
+- PostgreSQL database with pgvector
+- Python backend web service
+- Static site frontend
 
 ### Design decisions
 
-### Why firework
+#### Why Fireworks AI?
 
-### Why Qwen models?
+Fireworks AI provides enterprise-grade inference infrastructure optimized for speed and reliability. With sub-second response times for both embeddings and LLM generation, it ensures a responsive user experience for real-time music recommendations. Competitive pricing and generous rate limits made it feasible to process embeddings for over 12 million songs during the data preparation phase.
 
-#### Why HyDE?
+#### Why Qwen models?
 
-## Style
-- Clean, one-page design
-- Glassmorphic top bar
-- Modern search bar with `Cmd+K` functionality
-- Purple accents and highlights to match the standout Render color
-- Highlights on example queries reminscent of the responsive effects in docs
+The Qwen model family excels at both embedding generation and creative text generation. `qwen3-embedding-8b` produces high-quality 8192-dimensional embeddings that effectively capture semantic meaning in song metadata and lyrics, while remaining more cost-effective than alternatives like OpenAI's embedding models. For text generation, `qwen3-235b-a22b-instruct-2507` provides the creative reasoning needed to generate hypothetical song lyrics and witty playlist titles. Using models from the same family ensures consistent semantic understanding across embedding and generation tasks.
+
+#### Why HyDE (Hypothetical Document Embeddings)?
+
+HyDE significantly improves semantic search accuracy by bridging the gap between user intent and database representation. When a user searches for "songs about feeling lost in a big city," their query embedding may not closely match actual song lyrics about urban isolation. By first generating hypothetical song lyrics that capture the desired vibe, then embedding those lyrics, we create a query representation that's semantically closer to target songs. This implementation combines direct query embeddings with HyDE embeddings to balance precision and diversity.
+
+#### Why combine query and HyDE embeddings?
+
+Combining direct query embeddings with HyDE-generated embeddings balances precision and serendipity. Direct embeddings capture songs that explicitly match user intent, while HyDE embeddings surface unexpected but semantically relevant matches through creative interpretation. This hybrid approach produces more diverse and interesting playlists than either method alone.
+
+#### Why Polars for data processing?
+
+Polars offers dramatically faster data processing than pandas, especially for the 12+ million song dataset. Its lazy evaluation and query optimization enable efficient joins, aggregations, and transformations without loading entire datasets into memory.
+
+#### Why Sanic for the backend?
+
+Sanic is a production-ready async Python web framework that efficiently handles concurrent requests—essential for an app making multiple sequential API calls per request (HyDE generation, embeddings, database queries, playlist naming, and Spotify lookups). Its async/await support keeps the backend responsive during I/O operations. The lightweight framework also starts quickly on Render's infrastructure and consumes fewer resources than heavier alternatives like Django.
+
+#### Why cache Spotify links?
+
+The Spotify API imposes rate limits and adds latency to each request. Since popular songs appear more frequently in recommendations, caching links in memory (as a simple dictionary) dramatically improves response times for subsequent requests and reduces unnecessary API calls. This straightforward optimization accelerates the user experience without requiring a separate caching layer like Redis.
+
+## Design & style
+
+- Clean, single-page design with responsive layout
+- Glassmorphic top bar for modern depth effect
+- Modern search bar with keyboard shortcut (`Cmd+K`) functionality
+- Purple accents and highlights match Render's signature color and docs styles
 - Custom logos created in Canva
-- <img src="frontend-site/src/assets/note_purple.png" alt="custom" style={{width: '50%'}} />
-- <img src="frontend-site/src/assets/note_white.png" alt="custom" style={{width: '50%'}} />
+- <img src="frontend-site/src/assets/note_purple.png" alt="custom logo purple" style={{width: '50%'}} />
+- <img src="frontend-site/src/assets/note_white.png" alt="custom logo white" style={{width: '50%'}} />
 
-## Data processing steps
-The following are one-time data processing steps performed in sequence:
-1. Joined `track_meta.tsv` and `user_item_interaction.csv` data from [Kaggle dataset](https://www.kaggle.com/datasets/usasha/million-music-playlists/data). The resulting `songs` dataset contained 12,431,127 rows
-1. Removed `37` rows with a null `song_name`, leaving 12,431,090 rows remaining
-1. Enriched `songs` with interaction stats from `user_item_interaction.csv` including `interactions_count`, `unique_users`,`avg_interactions_per_user`, and `popularity_score` (`0.6 * interactions_count + 0.4 * unique_users`)
-1. Enriched `songs` with lyrics data to produce `enriched_songs`
-   a. After attempting to use `lyricsgenius` and hitting API rate limits that would prove impossible with my allotted time frame, I elected to join the `songs` data to an [existing Genius dataset](https://huggingface.co/datasets/sebastiandizon/genius-song-lyrics) rather than collecting song lyrics from the API myself
-   b. Only 128,667 songs (~1%) could be joined to the lyrics dataset even with normalization
-1. Stored `enriched_songs` in the Postgres database
-1. Generated vector embeddings for each song using `song_name`, `band`, and `lyrics` (if available) fields to capture the strongest possible semantic information
+## Data processing pipeline
 
+The following one-time data processing steps were performed sequentially:
+
+1. **Data integration**: Joined `track_meta.tsv` and `user_item_interaction.csv` from the [Million Music Playlists Kaggle dataset](https://www.kaggle.com/datasets/usasha/million-music-playlists/data), resulting in 12,431,127 songs
+
+1. **Data cleaning**: Removed 37 rows with null `song_name` values, leaving 12,431,090 valid entries
+
+1. **Interaction statistics**: Enriched songs with user interaction metrics including:
+   - `interactions_count`: Total number of user interactions
+   - `unique_users`: Number of distinct users who interacted
+   - `avg_interactions_per_user`: Average engagement depth
+   - `popularity_score`: Weighted score calculated as `0.6 × interactions_count + 0.4 × unique_users`
+
+1. **Lyrics Enrichment**: Integrated lyrics data to create `enriched_songs`
+   - Initially attempted to use `lyricsgenius` API but encountered prohibitive rate limits
+   - Instead, joined against an [existing Genius lyrics dataset](https://huggingface.co/datasets/sebastiandizon/genius-song-lyrics) from Hugging Face
+   - Successfully matched 128,667 songs (~1% of all songs) with lyrics data using fuzzy matching and normalization
+
+1. **Database storage**: Loaded `enriched_songs` form the previous step into the PostgreSQL database with pgvector extension enabled
+
+1. **Embedding generation**: Created vector embeddings for each song using `song_name`, `band`, and `lyrics` (when available) to capture comprehensive semantic information
