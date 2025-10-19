@@ -71,8 +71,8 @@ async def search_database(
 
             query = text(
                 """SELECT s.song_name, s.band
-                FROM song_embeddings se
-                JOIN songs s ON se.song_id = s.song_id
+                FROM public.song_embeddings se
+                JOIN public.songs s ON se.song_id = s.song_id
                 ORDER BY se.embedding <=> :embedding 
                 LIMIT :limit";
                 """
