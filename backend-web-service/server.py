@@ -8,6 +8,8 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 from dotenv import load_dotenv
+from spotipy import Spotify
+from spotipy.oauth2 import SpotifyClientCredentials
 
 load_dotenv()
 
@@ -20,10 +22,26 @@ client = OpenAI(
     api_key=os.environ.get("FIREWORKS_API_KEY"),
 )
 
+# Initialize Spotify client
+spotify_client_id = os.environ.get("SPOTIFY_CLIENT_ID")
+spotify_client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
+
+if spotify_client_id and spotify_client_secret:
+    auth_manager = SpotifyClientCredentials(
+        client_id=spotify_client_id, client_secret=spotify_client_secret
+    )
+    spotify = Spotify(auth_manager=auth_manager)
+else:
+    logger.warning(
+        "Spotify credentials not found. Spotify links will not be available."
+    )
+    spotify = None
+
 
 class Song(TypedDict):
     title: str
     artist: str
+    spotifyLink: str | None = None
 
 
 async def embed(text: str) -> list[float]:
@@ -109,6 +127,42 @@ Respond only with the name of the playlist, no other text.""",
     return model_answer
 
 
+async def add_spotify_links(songs: list[Song]) -> list[Song]:
+    """
+    Search for each song on Spotify and add the Spotify link if found.
+    """
+    if not spotify:
+        logger.warning("Spotify client not initialized. Skipping Spotify links.")
+        return songs
+
+    for song in songs:
+        try:
+            # Search for the song on Spotify using title and artist
+            query = f"track:{song['title']} artist:{song['artist']}"
+            results = spotify.search(q=query, type="track", limit=1)
+
+            # Check if we found any tracks
+            if results["tracks"]["items"]:
+                track = results["tracks"]["items"][0]
+                song["spotifyLink"] = track["external_urls"]["spotify"]
+                logger.debug(
+                    f"Found Spotify link for {song['title']} by {song['artist']}: {song['spotifyLink']}"
+                )
+            else:
+                logger.debug(
+                    f"No Spotify link found for {song['title']} by {song['artist']}"
+                )
+                song["spotifyLink"] = None
+
+        except Exception as e:
+            logger.error(
+                f"Error searching Spotify for {song['title']} by {song['artist']}: {e}"
+            )
+            song["spotifyLink"] = None
+
+    return songs
+
+
 @app.post("/recommendations")
 async def get_recommendations(request: Request) -> dict:
     query = request.json.get("query")
@@ -135,6 +189,10 @@ async def get_recommendations(request: Request) -> dict:
     # Step 4: Generate a title for the given songs
     logger.info("Coming up with clever playlist title...")
     playlist_name = await get_playlist_name(songs=songs, query=query)
+
+    # Step 5: Add the Spotify links to the songs
+    logger.info("Getting Spotify links for the songs...")
+    songs = await add_spotify_links(songs=songs)
 
     logger.info(f"Done! Created playlist '{playlist_name}'.")
     return json(

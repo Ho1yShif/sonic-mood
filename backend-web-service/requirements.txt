@@ -2,3 +2,4 @@ sanic==25.3.0
 sanic-cors==2.2.0
 openai==2.5.0
 python-dotenv==1.1.1
+spotipy==2.25.1

@@ -16,6 +16,7 @@ import { getMockRecommendations } from './mockApi';
 interface BackendSong {
   title: string;
   artist: string;
+  spotifyLink: string | null;
 }
 
 interface BackendResponse {
@@ -109,7 +110,7 @@ export const getRecommendations = async (query: string): Promise<RecommendationR
         id: `${song.artist}-${song.title}-${index}`.replace(/\s+/g, '-').toLowerCase(),
         title: song.title,
         artist: song.artist,
-        spotifyLink: null, // Backend doesn't provide this yet
+        spotifyLink: song.spotifyLink || null,
       })),
     };
     
