@@ -141,7 +141,7 @@ graph LR
 
 - Embeds user queries using [`qwen3-embedding-8b`](https://huggingface.co/Qwen/Qwen3-Embedding-8B) via [Fireworks AI](https://fireworks.ai/)
 - Generates hypothetical song lyrics matching the query using [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) and [HyDE techniques](https://milvus.io/ai-quick-reference/what-is-hyde-hypothetical-document-embeddings-and-when-should-i-use-it) for improved semantic matching
-- Performs vector similarity search against the PostgreSQL database using pgvector with hybrid scoring (70% similarity, 30% interaction statistics)
+- Performs vector similarity search against the PostgreSQL database using pgvector, then re-ranks results by popularity score
 - Retrieves Spotify links for recommended songs (with in-memory caching)
 - Generates creative playlist titles via [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507), inspired by Spotify's daylist feature
 
@@ -160,7 +160,7 @@ graph LR
 SELECT song_name, band, popularity_score FROM song_embeddings ORDER BY embedding <=> :embedding LIMIT :limit;
 ```
 
-### Design decisions
+### Decision rationale
 
 #### Why Fireworks AI?
 
@@ -198,6 +198,15 @@ Sanic is a production-ready async Python web framework that efficiently handles 
 
 The Spotify API imposes rate limits and adds latency to each request. Since popular songs appear more frequently in recommendations, caching links in memory (as a simple dictionary) dramatically improves response times for subsequent requests and reduces unnecessary API calls. This straightforward optimization accelerates the user experience without requiring a separate caching layer like Redis.
 
+## Assumptions
+
+Assumptions I made while building this project:
+- Songs data should ideally be enriched with lyrics where possible for comprehensive semantic information in embeddings
+- 37 songs without `song_name` values should be filtered out of the dataset since the `song_name` is central to the embedding and thus the recommendation output
+- Since only ~1% of songs (128,667 out of 12M+) could be easily enriched lyrics, embeddings generated from song name and band alone are sufficient for meaningful semantic search for the remaining 99% of songs
+- IVFFlat's approximate nearest neighbor search is sufficient—perfect precision isn't required since users benefit from diverse, serendipitous recommendations rather than absolute top matches
+- The Million Music Playlists Kaggle dataset is representative of broader music listening patterns, and its interaction statistics are reliable indicators of song quality and relevance
+- The Spotify API will have links for a sufficient percentage of songs in the dataset to provide meaningful playlists
 
 ## Design and style
 
@@ -232,8 +241,10 @@ The following one-time data processing steps were performed sequentially:
 
 1. **Embedding generation**: Created vector embeddings for each song using `song_name`, `band`, and `lyrics` (when available) to capture comprehensive semantic information
 
-## Assumptions
+## Resources
 
-Assumptions I made while building this project:
-- Songs data should ideally be enriched with lyrics where possible for comprehensive semantic information in embeddings
-- 37 songs without `song_name` values should be filtered out of the dataset since the `song_name` is central to the embedding and thus the recommendation output
+New to AI engineering, vector databases, or pgvector? Review these resources for context:
+- [pgvector](https://github.com/pgvector/pgvector) codebase
+- [What is pgvector?](https://supabase.com/docs/guides/database/extensions/pgvector?queryGroups=database-method&database-method=dashboard)
+- [Vector Databases](https://www.pinecone.io/learn/vector-database/)
+- [IVFFlat indexing and semantic similarity search](https://www.tigerdata.com/blog/nearest-neighbor-indexes-what-are-ivfflat-indexes-in-pgvector-and-how-do-they-work#what-are-ivfflat-indexes)
