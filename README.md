@@ -115,14 +115,14 @@ graph LR
     Backend -->|Personalized playlist| Frontend
     Frontend -->|Display results| User
     
-    style User fill:#e1d5f7,stroke:#9065d4,stroke-width:3px
-    style Frontend fill:#e1d5f7,stroke:#9065d4,stroke-width:2px
-    style Backend fill:#c9b5e8,stroke:#7340b3,stroke-width:2px
-    style DB fill:#b8ddf7,stroke:#4a8fc7,stroke-width:2px
-    style Embedding fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px
-    style HyDE fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px
-    style TitleGen fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px
-    style Spotify fill:#caffbf,stroke:#4ade80,stroke-width:2px
+    style User fill:#e1d5f7,stroke:#9065d4,stroke-width:3px,color:#000
+    style Frontend fill:#e1d5f7,stroke:#9065d4,stroke-width:2px,color:#000
+    style Backend fill:#c9b5e8,stroke:#7340b3,stroke-width:2px,color:#000
+    style DB fill:#b8ddf7,stroke:#4a8fc7,stroke-width:2px,color:#000
+    style Embedding fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px,color:#000
+    style HyDE fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px,color:#000
+    style TitleGen fill:#ffd6a5,stroke:#ff9b42,stroke-width:2px,color:#000
+    style Spotify fill:#caffbf,stroke:#4ade80,stroke-width:2px,color:#000
 ```
 
 ### Components
