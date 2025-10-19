@@ -1,6 +1,6 @@
-# Backend Web Service
+# Backend web service
 
-A Sanic-based API service that powers music recommendations using AI embeddings and Hypothetical Document Embeddings (HyDE) technique.
+Sanic-based API service that powers music recommendations using AI embeddings and Hypothetical Document Embeddings (HyDE) technique.
 
 ## Overview
 
@@ -13,24 +13,24 @@ This backend service provides intelligent music recommendations by:
 
 ## Features
 
-- **HyDE (Hypothetical Document Embeddings)**: Generates a hypothetical song that matches the user's query to improve search relevance
-- **Vector Embeddings**: Uses Qwen3 embedding model for semantic similarity
-- **Creative Playlist Naming**: Generates witty, mood-capturing playlist names using LLMs
+- **HyDE (hypothetical document embeddings)**: Generates a hypothetical song that matches the user's query to improve search relevance
+- **Vector embeddings**: Uses Qwen3 embedding model for semantic similarity
+- **Creative playlist naming**: Generates witty, mood-capturing playlist names using LLMs
 - **RESTful API**: Simple JSON-based API for easy integration
 
-## Tech Stack
+## Tech stack
 
-- **Web Framework**: Sanic (async Python web framework)
+- **Web framework**: Sanic (async Python web framework)
 - **AI/ML**: Fireworks AI API (Qwen3 models)
 - **Database**: PostgreSQL with pgvector (Render)
 
-## API Endpoints
+## API endpoints
 
 ### POST /recommendations
 
 Generates music recommendations based on a text query.
 
-**Request Body:**
+**Request body:**
 ```json
 {
   "query": "songs for a rainy day"
@@ -55,19 +55,19 @@ Generates music recommendations based on a text query.
 }
 ```
 
-## How It Works
+## How it works
 
-1. **Hypothetical Song Generation**: The service uses an LLM to write a hypothetical song that matches the user's query
-2. **Embedding Creation**: Both the original query and hypothetical song are converted to vector embeddings
-3. **Database Search**: The embeddings are used to search the database for similar real songs
-4. **Playlist Naming**: An LLM generates a creative 3-4 word playlist name based on the songs and query
+1. **Hypothetical song generation**: The service uses an LLM to write a hypothetical song that matches the user's query
+2. **Embedding creation**: Both the original query and hypothetical song are converted to vector embeddings
+3. **Database search**: The embeddings are used to search the database for similar real songs and then re-ranked by popularity metrics from user interaction data
+4. **Playlist naming**: An LLM generates a creative 3-4 word playlist name based on the songs and query
 
 ## Setup
 
 ### Prerequisites
 
 - Python 3.8+
-- PostgreSQL with pgvector extension (for production)
+- Render PostgreSQL database with pgvector extension (for production)
 - Fireworks AI API key
 
 ### Installation
@@ -90,17 +90,17 @@ sanic server
 
 The server will start on the default Sanic port (typically 8000).
 
-## Environment Variables
+## Environment variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `FIREWORKS_API_KEY` | API key for Fireworks AI services | Yes |
 
-## Models Used
+## Models used
 
-- **Embedding Model**: `qwen3-embedding-8b` - Generates vector embeddings for semantic search
-- **LLM Model**: `qwen3-235b-a22b-instruct-2507` - MoE LLM for text generation
+- **Embedding model**: `qwen3-embedding-8b` - Generates vector embeddings for semantic search
+- **LLM model**: `qwen3-235b-a22b-instruct-2507` - MoE LLM for text generation
 
 ## Deployment
 
-This service is designed to be deployed on Render alongside a PostgreSQL database with the pgvector extension.
+This service is designed to be deployed on Render with a PostgreSQL database and the pgvector extension.

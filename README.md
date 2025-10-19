@@ -2,7 +2,7 @@
 
 Sonic Mood is an AI-powered music recommendation app that demonstrates how to deploy semantic search at scale using [Render](https://render.com) and [pgvector](https://github.com/pgvector/pgvector). Enter a mood or vibe, and receive a personalized playlist drawn from over 12 million songs.
 
-This application showcases how to use [pgvector](https://github.com/pgvector/pgvector) with Render’s Postgres resources.
+This application showcases how to use [pgvector](https://github.com/pgvector/pgvector) with Render’s Postgres resources using the [installation steps](https://github.com/pgvector/pgvector?tab=readme-ov-file#installation) and a `CREATE EXTENSION vector;` command.
 
 ## Quickstart
 
@@ -170,13 +170,21 @@ Fireworks AI provides enterprise-grade inference infrastructure optimized for sp
 
 The Qwen model family excels at both embedding generation and creative text generation. `qwen3-embedding-8b` produces high-quality 8192-dimensional embeddings that effectively capture semantic meaning in song metadata and lyrics, while remaining more cost-effective than alternatives like OpenAI's embedding models. For text generation, `qwen3-235b-a22b-instruct-2507` provides the creative reasoning needed to generate hypothetical song lyrics and witty playlist titles. Using models from the same family ensures consistent semantic understanding across embedding and generation tasks.
 
-#### Why HyDE (Hypothetical Document Embeddings)?
+#### Why HyDE (hypothetical document embeddings)?
 
 HyDE significantly improves semantic search accuracy by bridging the gap between user intent and database representation. When a user searches for "songs about feeling lost in a big city," their query embedding may not closely match actual song lyrics about urban isolation. By first generating hypothetical song lyrics that capture the desired vibe, then embedding those lyrics, we create a query representation that's semantically closer to target songs. This implementation combines direct query embeddings with HyDE embeddings to balance precision and diversity.
 
 #### Why combine query and HyDE embeddings?
 
 Combining direct query embeddings with HyDE-generated embeddings balances precision and serendipity. Direct embeddings capture songs that explicitly match user intent, while HyDE embeddings surface unexpected but semantically relevant matches through creative interpretation. This hybrid approach produces more diverse and interesting playlists than either method alone.
+
+#### Why pgvector for semantic search?
+
+pgvector integrates vector similarity search directly into PostgreSQL, eliminating the need for a separate vector database. This simplifies the architecture, reduces operational overhead, and allows seamless joins between vector similarity results and relational data like interaction statistics. Since Render natively supports PostgreSQL with pgvector, it provides a cost-effective solution that scales well for 12+ million song embeddings while maintaining query performance.
+
+#### Why IVFFlat for the `song_embeddings` index (instead of HNSW or similar)?
+
+IVFFlat provides the optimal balance of speed, accuracy, and resource usage for this dataset size. With 12+ million songs, HNSW would require significantly more memory (storing the full graph structure) and longer index build times. IVFFlat's inverted file approach clusters vectors into lists, enabling fast approximate nearest neighbor search with lower memory overhead. Since music recommendations benefit from diverse results rather than absolute precision, IVFFlat's recall-speed tradeoff is ideal—it returns relevant matches quickly while using less memory and supporting faster insertions when adding new songs.
 
 #### Why Polars for data processing?
 
@@ -191,7 +199,7 @@ Sanic is a production-ready async Python web framework that efficiently handles 
 The Spotify API imposes rate limits and adds latency to each request. Since popular songs appear more frequently in recommendations, caching links in memory (as a simple dictionary) dramatically improves response times for subsequent requests and reduces unnecessary API calls. This straightforward optimization accelerates the user experience without requiring a separate caching layer like Redis.
 
 
-## Design & style
+## Design and style
 
 - Clean, single-page design with responsive layout
 - Glassmorphic top bar for modern depth effect

@@ -1,6 +1,59 @@
-# Data Processing
+# Data processing
 
 This directory contains scripts for offline processing to build and enrich the database with song data.
+
+
+## Workflow
+
+In the diagram below, purple nodes represent scripts in the `data-processing` folder and yellow nodes represent scripts in the `database` folder.
+
+```mermaid
+graph TD
+    DP["📁 data-processing/"]
+    DB["📁 database/"]
+    DP ~~~ DB
+    DB ~~~ A
+    
+    A[Start] --> B["Enrich songs with lyrics<br/>enrich_songs.py"]
+    B --> C["Store songs in database<br/>store_songs.py"]
+    C --> D["Create song_embeddings<br/>table<br/>setup_embeddings_table.py"]
+    D --> E["Generate embeddings<br/>and store in  database<br/>generate_embeddings.py"]
+    E --> F["Create IVFFlat index<br/>create_index.py"]
+    F --> G[End]
+    
+    style DP fill:#e1f5ff
+    style DB fill:#fff4e1
+    style B fill:#e1f5ff
+    style C fill:#e1f5ff
+    style D fill:#fff4e1
+    style E fill:#e1f5ff
+    style F fill:#fff4e1
+```
+
+1. **Enrich songs with lyrics:**
+   ```bash
+   python enrich_songs.py
+   ```
+
+1. **Store songs in database:**
+   ```bash
+   python store_songs.py
+   ```
+
+1. **Create `song_embeddings` table**
+   ```bash
+   python ../database/setup_embeddings_table.py
+   ```
+
+1. **Generate embeddings:**
+   ```bash
+   python generate_embeddings.py
+   ```
+
+2. Once embeddings are written to the table, **create an IVFFlat index**
+   ```bash
+   python ../database/create_index.py
+   ```
 
 ## Scripts
 
@@ -29,7 +82,7 @@ Stores enriched song data into PostgreSQL database.
 ### `generate_embeddings.py`
 Generates vector embeddings for songs and stores them in a separate `song_embeddings` table.
 
-**Embedding Generation Logic:**
+**Embedding generation logic:**
 - When `has_lyrics` is `True` AND `lyrics` column is available:
   - Uses: `song_name`, `band`, and `lyrics` for embedding
   - Format: `"{song_name} by {band}\n\n{lyrics}"`
@@ -72,24 +125,7 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-## Workflow
-
-1. **Enrich songs with lyrics:**
-   ```bash
-   python enrich_songs.py
-   ```
-
-2. **Store songs in database:**
-   ```bash
-   python store_songs.py
-   ```
-
-3. **Generate embeddings:**
-   ```bash
-   python generate_embeddings.py
-   ```
-
-## Environment Variables
+## Environment variables
 
 Required environment variables (use `.env` file):
 - `FIREWORKS_API_KEY`: API key for Fireworks AI (for embeddings)
