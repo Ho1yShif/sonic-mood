@@ -4,7 +4,7 @@ Semantic search operations for song retrieval.
 This module handles:
 - Database connection initialization
 - pgvector similarity search
-- Hybrid scoring (similarity + popularity)
+- Reranking by popularity score
 """
 
 import os
@@ -51,14 +51,14 @@ async def search_database(
     """
     Search the database for songs with similar embeddings using pgvector.
 
-    We pull the 5 most similar songs to the query embedding and then sort them by popularity score.
+    Retrieves the most similar songs to the query embedding, then reranks them by popularity score.
 
     Args:
         query_embedding: The embedding vector to search for
         n: Number of results to return
 
     Returns:
-        List of Song dictionaries with title and artist
+        List of Song dictionaries with title and artist, ordered by popularity
     """
     if not db_engine:
         logger.error("Database not initialized. Cannot search for songs.")
@@ -70,11 +70,11 @@ async def search_database(
             embedding_str = f"[{','.join(map(str, query_embedding))}]"
 
             query = text(
-                """SELECT s.song_name, s.band
+                """SELECT s.song_name, s.band, s.popularity_score
                 FROM public.song_embeddings se
                 JOIN public.songs s ON se.song_id = s.song_id
                 ORDER BY se.embedding <=> :embedding 
-                LIMIT :limit";
+                LIMIT :limit
                 """
             )
 
@@ -93,11 +93,14 @@ async def search_database(
                         "title": row[0],
                         "artist": row[1],
                         "popularity_score": row[2],
+                        "spotifyLink": None,
                     }
                 )
 
+            # Rerank by popularity score (higher is better)
             songs.sort(key=lambda x: x["popularity_score"], reverse=True)
 
+            # Remove popularity_score from final results
             for song in songs:
                 del song["popularity_score"]
 
