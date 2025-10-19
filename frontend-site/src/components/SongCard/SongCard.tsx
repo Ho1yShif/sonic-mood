@@ -97,12 +97,12 @@ export const SongCard = ({ song, index }: SongCardProps) => {
           ) : (
             <div
               className="
-                flex items-center gap-3
-                px-6 py-3
+                flex items-center gap-2
+                px-5 py-3
                 bg-gray-800/50
                 text-gray-500
                 rounded-xl
-                font-semibold
+                font-semibold text-base
                 cursor-not-allowed
                 border border-gray-700/50
                 whitespace-nowrap

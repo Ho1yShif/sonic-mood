@@ -92,9 +92,6 @@ function App() {
                 sonic mood
               </h1>
             </button>
-            <div className="text-xs sm:text-sm text-spotify-text-subdued font-medium">
-              Powered by pgvector
-            </div>
           </div>
         </div>
       </header>
@@ -160,9 +157,6 @@ function App() {
               {/* Footer info */}
               <div className="mt-12 text-center">
                 <div className="glass inline-block px-6 py-3 rounded-full">
-                  <p className="text-gray-300 text-sm font-medium">
-                    ✨ Powered by semantic search with <span className="text-primary-purple font-semibold">pgvector</span>
-                  </p>
                 </div>
               </div>
             </div>
@@ -177,7 +171,16 @@ function App() {
       <footer className="bg-spotify-black mt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-spotify-text-subdued text-center text-xs sm:text-sm">
-            Built with React, TypeScript, and Tailwind CSS • 
+            Powered by {' '}
+            <a 
+              href="https://github.com/pgvector/pgvector" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary-purple hover:underline focus:outline-none focus:underline transition-colors"
+            >
+              pgvector
+            </a>
+            {'\u00A0\u00A0\u00A0|\u00A0\u00A0\u00A0'} 
             Deployed on{' '}
             <a 
               href="https://render.com" 
