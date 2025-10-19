@@ -107,14 +107,14 @@ async def search_database(
                         SELECT 
                             s.song_name, 
                             s.band,
-                            re.embedding <=> :embedding::vector AS distance,
+                            re.embedding <=> CAST(:embedding AS vector) AS distance,
                             s.popularity_score,
                             s.interactions_count,
                             s.unique_users
                         FROM ranked_embeddings re
                         JOIN songs s ON re.song_id = s.song_id
                         WHERE re.rn = 1
-                        ORDER BY re.embedding <=> :embedding::vector
+                        ORDER BY re.embedding <=> CAST(:embedding AS vector)
                         LIMIT :candidate_limit
                     ),
                     normalized_scores AS (
@@ -202,7 +202,7 @@ async def search_database(
                     FROM ranked_embeddings re
                     JOIN songs s ON re.song_id = s.song_id
                     WHERE re.rn = 1
-                    ORDER BY re.embedding <=> :embedding::vector
+                    ORDER BY re.embedding <=> CAST(:embedding AS vector)
                     LIMIT :limit
                 """)
 
