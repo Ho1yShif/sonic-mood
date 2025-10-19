@@ -133,7 +133,7 @@ graph LR
 
 - Embeds user queries using [`qwen3-embedding-8b`](https://huggingface.co/Qwen/Qwen3-Embedding-8B) via [Fireworks AI](https://fireworks.ai/)
 - Generates hypothetical song lyrics matching the query using [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) and [HyDE techniques](https://milvus.io/ai-quick-reference/what-is-hyde-hypothetical-document-embeddings-and-when-should-i-use-it) for improved semantic matching
-- Performs vector similarity search against the PostgreSQL database using pgvector
+- Performs vector similarity search against the PostgreSQL database using pgvector with hybrid scoring (70% similarity, 30% interaction statistics)
 - Retrieves Spotify links for recommended songs (with in-memory caching)
 - Generates creative playlist titles via [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507), inspired by Spotify's daylist feature
 
@@ -199,7 +199,7 @@ The following one-time data processing steps were performed sequentially:
    - `avg_interactions_per_user`: Average engagement depth
    - `popularity_score`: Weighted score calculated as `0.6 × interactions_count + 0.4 × unique_users`
 
-1. **Lyrics Enrichment**: Integrated lyrics data to create `enriched_songs`
+1. **Lyrics enrichment**: Integrated lyrics data to create `enriched_songs`
    - Initially attempted to use `lyricsgenius` API but encountered prohibitive rate limits
    - Instead, joined against an [existing Genius lyrics dataset](https://huggingface.co/datasets/sebastiandizon/genius-song-lyrics) from Hugging Face
    - Successfully matched 128,667 songs (~1% of all songs) with lyrics data using fuzzy matching and normalization
@@ -207,3 +207,8 @@ The following one-time data processing steps were performed sequentially:
 1. **Database storage**: Loaded `enriched_songs` form the previous step into the PostgreSQL database with pgvector extension enabled
 
 1. **Embedding generation**: Created vector embeddings for each song using `song_name`, `band`, and `lyrics` (when available) to capture comprehensive semantic information
+
+## Assumptions
+
+Assumptions I made while building this project:
+- 37 songs without `song_name` values should be filtered out of the dataset since the `song_name` is central to the embedding and thus the recommendation output
