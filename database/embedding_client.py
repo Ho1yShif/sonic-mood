@@ -46,6 +46,7 @@ class EmbeddingClient:
             response = self.client.embeddings.create(
                 input=texts,
                 model=self.model,
+                dimensions=2000,
             )
 
             # Extract embeddings from response
@@ -53,6 +54,7 @@ class EmbeddingClient:
             return embeddings
 
         except Exception as e:
-            print(f"Error generating embeddings: {e}")
+            error_msg = f"❌ API ERROR generating embeddings: {e}"
+            print(error_msg, flush=True)
             # Return None for all texts on error
             return [None] * len(texts)
