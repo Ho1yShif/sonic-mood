@@ -3,6 +3,7 @@ Store enriched music data into PostgreSQL database.
 Uses SQLAlchemy for reliable connections with proper SSL handling.
 """
 
+import os
 import time
 import polars as pl
 from sqlalchemy import (
@@ -249,7 +250,7 @@ def store_songs_to_postgres(
 
 
 if __name__ == "__main__":
-    POSTGRES_URL = "postgresql://ho1yshif:K2ytIVfh9qNu2Ig6ARnhIxWL6iRlHrnw@dpg-d3pj9lt6ubrc73f7fh20-a.oregon-postgres.render.com/render_take_home"
+    POSTGRES_URL = os.environ.get("POSTGRES_URL")
 
     # Process and enrich songs data with lyrics
     print("=" * 80)
