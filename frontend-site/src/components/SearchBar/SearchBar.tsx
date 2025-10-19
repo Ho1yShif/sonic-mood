@@ -116,7 +116,7 @@ export const SearchBar = ({
             placeholder={placeholder}
             disabled={isLoading}
             className="
-              w-full pl-12 pr-48 py-4
+              w-full pl-12 pr-24 py-4
               bg-white/5 text-white placeholder-spotify-text-subdued
               border-2 border-white/10
               rounded-full
@@ -130,52 +130,11 @@ export const SearchBar = ({
             maxLength={MAX_CHARS}
           />
           
-          {/* Keyboard shortcut indicator - only show when not focused and no query */}
-          {!query && (
-            <div className="absolute right-32 pointer-events-none hidden md:flex items-center gap-1">
-              <kbd className="
-                px-2 py-1
-                bg-white/10 text-spotify-text-subdued
-                border border-white/10
-                rounded
-                text-xs font-medium
-                flex items-center gap-1
-              ">
-                <span>{isMac ? '⌘' : 'Ctrl'}</span>
-                <span>K</span>
-              </kbd>
-            </div>
-          )}
-          
-          {/* Submit button */}
-          <button
-            type="submit"
-            disabled={isLoading || !query.trim()}
-            className="
-              absolute right-2
-              px-6 py-2.5
-              bg-primary-purple
-              text-white
-              rounded-full
-              font-semibold text-sm
-              flex items-center justify-center gap-2
-              hover:bg-purple-600
-              focus:outline-none focus:ring-2 focus:ring-primary-purple focus:ring-offset-2 focus:ring-offset-spotify-bg
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all duration-200
-              min-w-[100px]
-            "
-            aria-label={isLoading ? "Searching..." : "Search"}
-          >
-            {isLoading ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                <span>Searching</span>
-              </>
-            ) : (
-              <span>Search</span>
-            )}
-          </button>
+          {/* Keyboard shortcut indicator */}
+          <div className="absolute right-9 pointer-events-none hidden md:flex items-center gap-1 text-spotify-text-subdued text-sm">
+            <span>{isMac ? '⌘' : 'Ctrl'}</span>
+            <span>K</span>
+          </div>
         </div>
         
         {/* Character counter (only show when approaching limit) */}

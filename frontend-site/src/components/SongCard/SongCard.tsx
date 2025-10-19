@@ -76,8 +76,9 @@ export const SongCard = ({ song, index }: SongCardProps) => {
               target="_blank"
               rel="noopener noreferrer"
               className="
-                flex items-center gap-2
+                flex items-center justify-center gap-2
                 px-5 py-3
+                min-w-[185px]
                 bg-black
                 hover:bg-gray-900
                 text-white
@@ -97,8 +98,9 @@ export const SongCard = ({ song, index }: SongCardProps) => {
           ) : (
             <div
               className="
-                flex items-center gap-2
+                flex items-center justify-center gap-2
                 px-5 py-3
+                min-w-[185px]
                 bg-gray-800/50
                 text-gray-500
                 rounded-xl
