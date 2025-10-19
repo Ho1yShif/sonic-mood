@@ -211,4 +211,5 @@ The following one-time data processing steps were performed sequentially:
 ## Assumptions
 
 Assumptions I made while building this project:
+- Songs data should ideally be enriched with lyrics where possible for comprehensive semantic information in embeddings
 - 37 songs without `song_name` values should be filtered out of the dataset since the `song_name` is central to the embedding and thus the recommendation output
