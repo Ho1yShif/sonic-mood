@@ -1,5 +1,4 @@
 import os
-from typing import TypedDict
 
 from openai import OpenAI
 from sanic import Sanic
@@ -10,6 +9,8 @@ from sanic_cors import CORS
 from dotenv import load_dotenv
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
+
+from semantic_search import Song, search_database
 
 load_dotenv()
 
@@ -40,12 +41,6 @@ else:
 # Cache for Spotify links to avoid redundant API calls
 # Key: (title, artist) tuple, Value: Spotify link (or None if not found)
 spotify_link_cache: dict[tuple[str, str], str | None] = {}
-
-
-class Song(TypedDict):
-    title: str
-    artist: str
-    spotifyLink: str | None = None
 
 
 async def embed(text: str) -> list[float]:
@@ -84,19 +79,6 @@ Respond only with the song, no other text.""",
     model_answer = response.choices[0].message.content.split("</think>")[-1].strip()
     logger.debug(f"HyDE model response: {model_answer}")
     return model_answer
-
-
-async def search_database(query_embedding: list[float], n: int = 5) -> list[Song]:
-    # TODO: Use pgvector to search the PostgreSQL database for similar songs
-    return [
-        {"title": "Inside My Head", "artist": "Sincere Engineer"},
-        {"title": "Awkward", "artist": "Weakened Friends"},
-        {"title": "Less Happy More Free", "artist": "Ben Lapidus"},
-        {"title": "I Think You Should Leave", "artist": "Winona Fighter"},
-        {"title": "EVERYTHING CAUSES CANCER", "artist": "Gavin Prophet"},
-        {"title": "I Need You to Kill Me", "artist": "Ditzy Spells"},
-        {"title": "Not Everyone is Gonna Love You", "artist": "Mattstagraham"},
-    ][:n]
 
 
 async def get_playlist_name(songs: list[Song], query: str) -> str:

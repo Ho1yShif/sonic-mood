@@ -4,3 +4,5 @@ kagglehub==0.3.13
 sqlalchemy==2.0.44
 python-dotenv==1.0.0
 openai==1.58.1
+psycopg2-binary==2.9.9
+pgvector==0.2.4
