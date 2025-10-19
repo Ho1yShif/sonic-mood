@@ -27,14 +27,27 @@ client = OpenAI(
 spotify_client_id = os.environ.get("SPOTIFY_CLIENT_ID")
 spotify_client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
 
+# Debug logging to see what we're getting
+logger.info(f"Spotify Client ID present: {bool(spotify_client_id)}")
+logger.info(f"Spotify Client Secret present: {bool(spotify_client_secret)}")
+
 if spotify_client_id and spotify_client_secret:
-    auth_manager = SpotifyClientCredentials(
-        client_id=spotify_client_id, client_secret=spotify_client_secret
-    )
-    spotify = Spotify(auth_manager=auth_manager)
+    try:
+        auth_manager = SpotifyClientCredentials(
+            client_id=spotify_client_id, client_secret=spotify_client_secret
+        )
+        spotify = Spotify(auth_manager=auth_manager)
+        logger.info("✓ Spotify client successfully initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize Spotify client: {e}")
+        spotify = None
 else:
     logger.warning(
         "Spotify credentials not found. Spotify links will not be available."
+    )
+    logger.warning(f"SPOTIFY_CLIENT_ID is {'set' if spotify_client_id else 'NOT set'}")
+    logger.warning(
+        f"SPOTIFY_CLIENT_SECRET is {'set' if spotify_client_secret else 'NOT set'}"
     )
     spotify = None
 

@@ -73,6 +73,12 @@ Sonic Mood is an AI-powered music recommendation app that demonstrates how to de
    
    The backend will start on `http://localhost:8000`
 
+1. (Optional) View logs
+```bash
+cd backend-web-service
+sanic server
+```
+
 1. **(Optional) Run the frontend locally**
    ```bash
    cd ../frontend-site

@@ -92,29 +92,20 @@ async def search_database(
                     WITH ranked_embeddings AS (
                         SELECT 
                             e.song_id,
-                            e.embedding,
-                            e.embedding_type,
-                            ROW_NUMBER() OVER (
-                                PARTITION BY e.song_id 
-                                ORDER BY CASE 
-                                    WHEN e.embedding_type = 'lyrics' THEN 1 
-                                    ELSE 2 
-                                END
-                            ) as rn
+                            e.embedding
                         FROM song_embeddings e
                     ),
                     similarity_scores AS (
                         SELECT 
                             s.song_name, 
                             s.band,
-                            re.embedding <=> CAST(:embedding AS vector) AS distance,
+                            CAST(re.embedding AS vector) <=> CAST(:embedding AS vector) AS distance,
                             s.popularity_score,
                             s.interactions_count,
                             s.unique_users
                         FROM ranked_embeddings re
                         JOIN songs s ON re.song_id = s.song_id
-                        WHERE re.rn = 1
-                        ORDER BY re.embedding <=> CAST(:embedding AS vector)
+                        ORDER BY CAST(re.embedding AS vector) <=> CAST(:embedding AS vector)
                         LIMIT :candidate_limit
                     ),
                     normalized_scores AS (
@@ -188,21 +179,13 @@ async def search_database(
                     WITH ranked_embeddings AS (
                         SELECT 
                             e.song_id,
-                            e.embedding,
-                            ROW_NUMBER() OVER (
-                                PARTITION BY e.song_id 
-                                ORDER BY CASE 
-                                    WHEN e.embedding_type = 'lyrics' THEN 1 
-                                    ELSE 2 
-                                END
-                            ) as rn
+                            e.embedding
                         FROM song_embeddings e
                     )
                     SELECT s.song_name, s.band
                     FROM ranked_embeddings re
                     JOIN songs s ON re.song_id = s.song_id
-                    WHERE re.rn = 1
-                    ORDER BY re.embedding <=> CAST(:embedding AS vector)
+                    ORDER BY CAST(re.embedding AS vector) <=> CAST(:embedding AS vector)
                     LIMIT :limit
                 """)
 

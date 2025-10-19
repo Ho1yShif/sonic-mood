@@ -25,9 +25,9 @@ interface BackendResponse {
 }
 
 // Get API configuration from environment variables
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-// Default to mock data for development (set VITE_USE_MOCK_DATA=false to use real API)
-const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Default to real API (set VITE_USE_MOCK_DATA=true to use mock data for development)
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
 /**
  * Fetches song recommendations from the backend API using natural language input
