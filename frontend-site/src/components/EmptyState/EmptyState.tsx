@@ -37,7 +37,7 @@ export const EmptyState = ({ onSearch }: EmptyStateProps) => {
       </h2>
       
       <p className="text-spotify-text-subdued text-base sm:text-lg max-w-2xl mb-12">
-        Tell us your vibe, and we'll find the perfect soundtrack
+        Tell us your vibe, and we'll find the perfect soundtrack to fit your mood
       </p>
       
       {/* Example queries */}
