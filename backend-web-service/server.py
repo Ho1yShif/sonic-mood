@@ -60,6 +60,7 @@ async def embed(text: str) -> list[float]:
     response = client.embeddings.create(
         input=text,
         model="accounts/fireworks/models/qwen3-embedding-8b",
+        dimensions=2000,
     )
 
     return response.data[0].embedding
