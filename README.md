@@ -198,6 +198,10 @@ Sanic is a production-ready async Python web framework that efficiently handles 
 
 The Spotify API imposes rate limits and adds latency to each request. Since popular songs appear more frequently in recommendations, caching links in memory (as a simple dictionary) dramatically improves response times for subsequent requests and reduces unnecessary API calls. This straightforward optimization accelerates the user experience without requiring a separate caching layer like Redis.
 
+#### Why upload embeddings to the database in incremental batches?
+
+Data processing uploads local cached embeddings in chunks of 5,000. This is done out of necessity given the constraint of over 12.4M records in the dataset, high-dimensional `vector(2000)` embedding data types, and only a few days to complete the project. The sonic mood application will immediately work while allowing the pool of available songs to expand as more embeddings are loaded into the vector store incrementally.
+
 ## Assumptions
 
 Assumptions I made while building this project:
