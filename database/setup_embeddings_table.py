@@ -34,8 +34,7 @@ def create_embeddings_table():
             text("""
             CREATE TABLE IF NOT EXISTS song_embeddings (
                 song_id INTEGER PRIMARY KEY,
-                embedding vector(8192) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                embedding vector(2000) NOT NULL
             )
         """)
         )
