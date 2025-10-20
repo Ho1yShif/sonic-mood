@@ -21,13 +21,19 @@ Options:
     --cache-dir=PATH         Cache directory (default: ~/Documents/song_embeddings)
     --batch-size=N           Number of songs per API call (max 2048, default 2048)
     --workers=N              Number of parallel workers for API calls (default 8, max 32)
-    --upload-batch-size=N    Number of embeddings per DB upload batch (default 500000)
     --upload-only            Skip generation, only upload cached embeddings to database
     --generate-only          Only generate and cache, don't upload to database
     --no-skip-existing       Regenerate embeddings even if cached
     --create-songs-cache     Create parquet cache of songs table, then exit
     --use-songs-cache        Use parquet cache instead of reading from database (faster)
     --songs-cache=PATH       Path to songs parquet cache (default: ~/Documents/song_embeddings/songs_cache.parquet)
+
+Note on Upload:
+    Upload now uses parallel chunked processing:
+    - 50,000 files per chunk (memory efficient)
+    - 5 parallel workers with separate DB connections
+    - Detailed progress logging with ETA
+    - Auto-resume by skipping existing embeddings
 
 Examples:
     # First-time setup: Create songs cache (faster for subsequent runs)
@@ -460,8 +466,8 @@ def main():
     table_name = None
     cache_dir = "~/Documents/song_embeddings"
     batch_size = 2048
-    upload_batch_size = 500000
     num_workers = 8
+    upload_batch_size = 50000  # Batch size for uploading embeddings to database
     skip_existing = True
     mode = "both"  # both, generate-only, upload-only, create-songs-cache
     use_parquet_cache = False
@@ -486,15 +492,6 @@ def main():
                     sys.exit(1)
             except ValueError:
                 print(f"Invalid batch size value: {arg}")
-                sys.exit(1)
-        elif arg.startswith("--upload-batch-size="):
-            try:
-                upload_batch_size = int(arg.split("=")[1])
-                if upload_batch_size < 1:
-                    print("Upload batch size must be at least 1")
-                    sys.exit(1)
-            except ValueError:
-                print(f"Invalid upload batch size value: {arg}")
                 sys.exit(1)
         elif arg.startswith("--workers="):
             try:
@@ -602,9 +599,11 @@ def main():
         # Phase 2: Upload to database
         if mode in ["both", "upload-only"]:
             if not _interrupted:
+                # Use parallel chunked upload with 5 workers
                 phase2_uploaded = upload_cached_embeddings_to_database(
                     cache_dir=cache_dir,
-                    batch_size=upload_batch_size,
+                    chunk_size=5000,  # Process 5K files per chunk (prevents connection timeout)
+                    num_workers=5,  # 5 parallel workers with separate connections
                 )
 
         # Print final summary

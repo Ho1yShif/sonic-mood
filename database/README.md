@@ -95,8 +95,7 @@ One-time setup script to create the `song_embeddings` table with pgvector suppor
 - Enables pgvector extension
 - Creates `song_embeddings` table with:
   - `song_id` (INTEGER PRIMARY KEY)
-  - `embedding` (vector(8192) NOT NULL)
-  - `created_at` (TIMESTAMP)
+  - `embedding` (vector(2000) NOT NULL)
 
 **Usage:**
 ```bash
