@@ -93,30 +93,43 @@ Generates vector embeddings for songs and stores them in a separate `song_embedd
 
 **Usage:**
 ```bash
-# Generate embeddings for all songs
-python generate_embeddings.py
+# First-time setup: Create songs cache (faster for subsequent runs)
+python generate_embeddings.py --create-songs-cache
 
-# Process only 100 songs
-python generate_embeddings.py --limit=100
+# Generate embeddings using parquet cache (10-100x faster song loading)
+python generate_embeddings.py --use-songs-cache
 
-# Use specific table and batch size
-python generate_embeddings.py --table=songs --batch-size=50
+# Generate and cache only (no DB upload)
+python generate_embeddings.py --generate-only --use-songs-cache
+
+# Upload cached embeddings to database
+python generate_embeddings.py --upload-only
+
+# Test with 1000 songs
+python generate_embeddings.py --limit=1000
 ```
 
 **Options:**
 - `--limit=N`: Process only N songs
-- `--table=NAME`: Read from specific table (default: 'songs')
-- `--batch-size=N`: Number of songs per API call (max 2048, default 100)
+- `--cache-dir=PATH`: Cache directory (default: ~/Documents/song_embeddings)
+- `--batch-size=N`: Number of songs per API call (max 2048, default 2048)
+- `--workers=N`: Number of parallel workers for API calls (default 8, max 32)
+- `--upload-batch-size=N`: Number of embeddings per DB upload batch (default 500000)
+- `--upload-only`: Skip generation, only upload cached embeddings to database
+- `--generate-only`: Only generate and cache, don't upload to database
+- `--no-skip-existing`: Regenerate embeddings even if cached
+- `--create-songs-cache`: Create parquet cache of songs table, then exit
+- `--use-songs-cache`: Use parquet cache instead of reading from database (faster)
+- `--songs-cache=PATH`: Path to songs parquet cache (default: ~/Documents/song_embeddings/songs_cache.parquet)
 - `--help` or `-h`: Show help message
 
 **Output:**
 Creates a `song_embeddings` table with:
 - `song_id` (Primary Key, references songs table)
 - `embedding` (Array of floats - vector embedding)
-- `text_used` (Text snippet showing what was embedded)
 
-### `language.py`
-Utility script for detecting and analyzing language distribution in song names.
+### `check_cache_status.py`
+Diagnostic utility script that monitors the embedding cache status during long-running embedding generation processes. It checks the cache directory for total file count, identifies the maximum cached song ID, displays the 10 most recently modified cache files, and determines whether the cache is actively being updated or has stalled (useful for detecting API errors or rate limiting issues).
 
 ## Requirements
 
@@ -130,3 +143,4 @@ pip install -r requirements.txt
 Required environment variables (use `.env` file):
 - `FIREWORKS_API_KEY`: API key for Fireworks AI (for embeddings)
 - `POSTGRES_URL`: PostgreSQL connection string (optional, has default)
+
