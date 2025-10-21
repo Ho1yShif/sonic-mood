@@ -1,17 +1,20 @@
 # Sonic mood
 
+## sonic-mood.onrender.com
+
 Sonic Mood is an AI-powered music recommendation app that demonstrates how to deploy semantic search at scale using [Render](https://render.com) and [pgvector](https://github.com/pgvector/pgvector). Enter a mood or vibe, and receive a personalized playlist drawn from over 12 million songs.
 
 This application showcases how to use [pgvector](https://github.com/pgvector/pgvector) with Render’s Postgres resources using the [installation steps](https://github.com/pgvector/pgvector?tab=readme-ov-file#installation) and a `CREATE EXTENSION vector;` command.
 
 ## Demo
 
-
 https://github.com/user-attachments/assets/612c327b-e6e9-4648-bf24-3795e0d9a379
 
-
-
 ## Quickstart
+
+<details>
+
+<summary>Clone and run Sonic Mood locally</summary>
 
 ### Prerequisites
 
@@ -72,7 +75,7 @@ https://github.com/user-attachments/assets/612c327b-e6e9-4648-bf24-3795e0d9a379
 
 1. **Run data processing steps:**
    - Run `data-processing/store_songs.py` to enrich the Kaggle song data and store it in PostgreSQL
-   - Run `data-processing/generate_embeddings.py` to store vector embeddings in PostgreSQL
+   - Run `data-processing/generate_embeddings.py` to generate and store vector embeddings in PostgreSQL
 
 1. **Install dependencies and run the backend**
    ```bash
@@ -82,11 +85,11 @@ https://github.com/user-attachments/assets/612c327b-e6e9-4648-bf24-3795e0d9a379
    
    The backend will start on `http://localhost:8000`
 
-1. (Optional) View logs
-```bash
-cd backend-web-service
-sanic server
-```
+1. **(Optional) View logs**
+   ```bash
+   cd backend-web-service
+   sanic server
+   ```
 
 1. **(Optional) Run the frontend locally**
    ```bash
@@ -98,6 +101,8 @@ sanic server
    The frontend will start on `http://localhost:5173`
 
 For production deployment, see Render's documentation on deploying [web services](https://render.com/docs/web-services) and [static sites](https://render.com/docs/static-sites).
+
+</details>
 
 ## Architecture
 
