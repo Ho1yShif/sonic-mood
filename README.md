@@ -7,6 +7,10 @@ This application showcases how to use [pgvector](https://github.com/pgvector/pgv
 ## Demo
 
 
+https://github.com/user-attachments/assets/612c327b-e6e9-4648-bf24-3795e0d9a379
+
+
+
 ## Quickstart
 
 ### Prerequisites
