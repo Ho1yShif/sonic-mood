@@ -27,9 +27,10 @@ https://github.com/user-attachments/assets/612c327b-e6e9-4648-bf24-3795e0d9a379
 ### Steps
 
 1. **Clone the repository**
+
    ```bash
-   git clone https://github.com/yourusername/Render-PGVector-Music-Recommender.git
-   cd Render-PGVector-Music-Recommender
+   git clone https://github.com/shifraisaacs/sonic-mood.git
+   cd sonic-mood
    ```
 
 1. **Create a PostgreSQL database on Render**
@@ -60,13 +61,15 @@ https://github.com/user-attachments/assets/612c327b-e6e9-4648-bf24-3795e0d9a379
    - Copy your "Client ID" and "Client Secret"
 
 1. **Configure environment variables**
+
    ```bash
    cd backend-web-service
    cp .env.example .env
    ```
-   
+
    Edit the `.env` file and add your credentials:
-   ```
+
+   ```env
    FIREWORKS_API_KEY=your_actual_fireworks_api_key
    SPOTIFY_CLIENT_ID=your_actual_spotify_client_id
    SPOTIFY_CLIENT_SECRET=your_actual_spotify_client_secret
@@ -78,26 +81,29 @@ https://github.com/user-attachments/assets/612c327b-e6e9-4648-bf24-3795e0d9a379
    - Run `data-processing/generate_embeddings.py` to generate and store vector embeddings in PostgreSQL
 
 1. **Install dependencies and run the backend**
+
    ```bash
    pip install -r requirements.txt
    python server.py
    ```
-   
+
    The backend will start on `http://localhost:8000`
 
 1. **(Optional) View logs**
+
    ```bash
    cd backend-web-service
    sanic server
    ```
 
 1. **(Optional) Run the frontend locally**
+
    ```bash
    cd ../frontend-site
    npm install
    npm run dev
    ```
-   
+
    The frontend will start on `http://localhost:5173`
 
 For production deployment, see Render's documentation on deploying [web services](https://render.com/docs/web-services) and [static sites](https://render.com/docs/static-sites).
@@ -164,11 +170,13 @@ graph LR
 - Static site frontend
 
 **pgvector**:
+
 - Simplified vectorization types for storage in PostgreSQL
 - Simple, expressive semantic search that computes cosine similarity to compare embeddings in a single line of SQL:
-```sql
-SELECT song_name, band, popularity_score FROM song_embeddings ORDER BY embedding <=> :embedding LIMIT :limit;
-```
+
+   ```sql
+   SELECT song_name, band, popularity_score FROM song_embeddings ORDER BY embedding <=> :embedding LIMIT :limit;
+   ```
 
 ### Decision rationale
 
@@ -221,6 +229,7 @@ Data processing uploads local cached embeddings in chunks of 5,000. This is done
 ## Assumptions
 
 Assumptions I made while building this project:
+
 - Songs data should ideally be enriched with lyrics where possible for comprehensive semantic information in embeddings
 - 37 songs without `song_name` values should be filtered out of the dataset since the `song_name` is central to the embedding and thus the recommendation output
 - Since only ~1% of songs (128,667 out of 12M+) could be easily enriched lyrics, embeddings generated from song name and band alone are sufficient for meaningful semantic search for the remaining 99% of songs
@@ -236,8 +245,8 @@ Assumptions I made while building this project:
 - Purple accents and highlights match Render's signature color and docs styles
 - Custom logos created in Canva
 
-<img src="frontend-site/src/assets/note_purple.png" alt="custom logo purple" width="200" />
-<img src="frontend-site/src/assets/note_white.png" alt="custom logo white" width="200" />
+![Custom logo purple](frontend-site/src/assets/note_purple.png)
+![Custom logo white](frontend-site/src/assets/note_white.png)
 
 ## Data processing pipeline
 
@@ -281,6 +290,7 @@ The following one-time data processing steps were performed sequentially:
 ## Resources
 
 New to AI engineering, vector databases, or pgvector? Review these resources for context:
+
 - [pgvector](https://github.com/pgvector/pgvector) codebase
 - [What is pgvector?](https://supabase.com/docs/guides/database/extensions/pgvector?queryGroups=database-method&database-method=dashboard)
 - [Vector Databases](https://www.pinecone.io/learn/vector-database/)

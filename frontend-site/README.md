@@ -23,22 +23,26 @@ A modern, AI-powered music recommendation web application that demonstrates how 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/shifraisaacs/sonic-mood.git
    cd sonic-mood
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    ```
 
    Edit `.env` to configure your settings:
+
    ```env
    # Use mock data for development (no backend needed)
    VITE_USE_MOCK_DATA=true
@@ -46,6 +50,7 @@ A modern, AI-powered music recommendation web application that demonstrates how 
    ```
 
 4. **Start the development server**
+
    ```bash
    bin/preview.sh
    ```
@@ -64,6 +69,7 @@ By default, the app uses realistic mock data so you can develop without a backen
 - Validation errors for empty or invalid queries
 
 To switch between mock and real API:
+
 ```env
 # Use mock data
 VITE_USE_MOCK_DATA=true
@@ -75,12 +81,14 @@ VITE_USE_MOCK_DATA=false
 ### Connect to a real backend
 
 1. Update your `.env` file:
+
    ```env
    VITE_USE_MOCK_DATA=false
    VITE_API_URL=https://your-backend.onrender.com/api
    ```
 
 2. Ensure your backend has an endpoint at `POST /recommendations` that accepts:
+
    ```json
    {
      "query": "string (max 500 chars)"
@@ -88,6 +96,7 @@ VITE_USE_MOCK_DATA=false
    ```
 
 3. And returns:
+
    ```json
    {
      "playlistName": "string",
@@ -103,12 +112,14 @@ VITE_USE_MOCK_DATA=false
    ```
 
 ## 🎨 Design
+
 - Purple: `#8a05ff` - Buttons, accents, highlights along with black and white
 - Using Neue Montreal sans-serif font to align with Render sites
 - Designed custom icons in Canva:
-<img src="frontend-site/src/assets/note_purple.png" alt="custom logo purple" width="200" />
-<img src="frontend-site/src/assets/note_white.png" alt="custom logo white" width="200" />
-<img src="frontend-site/src/assets/note_black.png" alt="custom logo purple" width="200" />
+
+![Custom logo purple](frontend-site/src/assets/note_purple.png)
+![Custom logo white](frontend-site/src/assets/note_white.png)
+![Custom logo black](frontend-site/src/assets/note_black.png)
 
 ## 📡 API reference
 
@@ -117,6 +128,7 @@ VITE_USE_MOCK_DATA=false
 Fetches song recommendations based on natural language input.
 
 **Request body:**
+
 ```json
 {
   "query": "upbeat songs for a workout"
@@ -124,6 +136,7 @@ Fetches song recommendations based on natural language input.
 ```
 
 **Success response (200):**
+
 ```json
 {
   "playlistName": "Energetic Workout Vibes",
