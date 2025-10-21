@@ -149,12 +149,12 @@ graph LR
 
 ### Components
 
-**Database**: A Render-managed PostgreSQL database with pgvector extension stores 12M+ songs with their metadata, interaction statistics, lyrics, and vector embeddings.
+**Database**: A Render-managed PostgreSQL database with pgvector extension stores songs with their metadata, interaction statistics, lyrics, and vector embeddings.
 
 **Backend web service** (Python/Sanic): Handles user queries through the following pipeline:
 
 - Embeds user queries using [`qwen3-embedding-8b`](https://huggingface.co/Qwen/Qwen3-Embedding-8B) via [Fireworks AI](https://fireworks.ai/)
-- Generates hypothetical song lyrics matching the query using [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) and [HyDE techniques](https://milvus.io/ai-quick-reference/what-is-hyde-hypothetical-document-embeddings-and-when-should-i-use-it) for improved semantic matching
+- Generates hypothetical song lyrics ([HyDE techniques](https://milvus.io/ai-quick-reference/what-is-hyde-hypothetical-document-embeddings-and-when-should-i-use-it)) matching the query using [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507) for improved semantic matching
 - Performs vector similarity search against the PostgreSQL database using pgvector, then re-ranks results by popularity score
 - Retrieves Spotify links for recommended songs (with in-memory caching)
 - Generates creative playlist titles via [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507), inspired by Spotify's daylist feature
@@ -184,7 +184,7 @@ graph LR
 
 #### Why Fireworks AI?
 
-Fireworks AI provides enterprise-grade inference infrastructure optimized for speed and reliability. With sub-second response times for both embeddings and LLM generation, it ensures a responsive user experience for real-time music recommendations. Competitive pricing and generous rate limits made it feasible to process embeddings for over 12 million songs during the data preparation phase.
+Fireworks AI provides enterprise-grade inference infrastructure optimized for speed and reliability. With sub-second response times for both embeddings and LLM generation, it ensures a responsive user experience for real-time music recommendations. Competitive pricing and generous rate limits made it feasible to process embeddings for millions of songs during the data preparation phase.
 
 #### Why Qwen models?
 
@@ -193,10 +193,6 @@ The Qwen model family excels at both embedding generation and creative text gene
 #### Why HyDE (hypothetical document embeddings)?
 
 HyDE significantly improves semantic search accuracy by bridging the gap between user intent and database representation. When a user searches for "songs about feeling lost in a big city," their query embedding may not closely match actual song lyrics about urban isolation. By first generating hypothetical song lyrics that capture the desired vibe, then embedding those lyrics, we create a query representation that's semantically closer to target songs. This implementation combines direct query embeddings with HyDE embeddings to balance precision and diversity.
-
-#### Why combine query and HyDE embeddings?
-
-Combining direct query embeddings with HyDE-generated embeddings balances precision and serendipity. Direct embeddings capture songs that explicitly match user intent, while HyDE embeddings surface unexpected but semantically relevant matches through creative interpretation. This hybrid approach produces more diverse and interesting playlists than either method alone.
 
 #### Why pgvector for semantic search?
 
@@ -220,7 +216,7 @@ The Spotify API imposes rate limits and adds latency to each request. Since popu
 
 #### Why upload embeddings to the database in incremental batches?
 
-Data processing uploads local cached embeddings in chunks of 5,000. This is done out of necessity given the constraint of over 12.4M records in the dataset, high-dimensional `vector(2000)` embedding data types, and only a few days to complete the project. The sonic mood application will immediately work while allowing the pool of available songs to expand as more embeddings are loaded into the vector store incrementally.
+Data processing uploads local cached embeddings in chunks of 5,000. This is done out of necessity given the constraint of over 12.4M records in the dataset, high-dimensional embedding data types, and only a few days to complete the project. The sonic mood application will immediately work while allowing the pool of available songs to expand as more embeddings are loaded into the vector store incrementally.
 
 </details>
 
@@ -231,7 +227,7 @@ Assumptions I made while building this project:
 - Songs data should ideally be enriched with lyrics where possible for comprehensive semantic information in embeddings
 - 37 songs without `song_name` values should be filtered out of the dataset since the `song_name` is central to the embedding and thus the recommendation output
 - Since only ~1% of songs (128,667 out of 12M+) could be easily enriched lyrics, embeddings generated from song name and band alone are sufficient for meaningful semantic search for the remaining 99% of songs
-- IVFFlat's approximate nearest neighbor search is sufficient—perfect precision isn't required since users benefit from diverse, serendipitous recommendations rather than absolute top matches
+- IVFFlat's approximate nearest neighbor search is sufficient—perfect precision isn't required since users benefit from diverse recommendations rather than absolute top matches
 - The Million Music Playlists Kaggle dataset is representative of broader music listening patterns, and its interaction statistics are reliable indicators of song quality and relevance
 - The Spotify API will have links for a sufficient percentage of songs in the dataset to provide meaningful playlists
 
@@ -243,8 +239,8 @@ Assumptions I made while building this project:
 - Purple accents and highlights match Render's signature color and docs styles
 - Custom logos created in Canva
 
-![Custom logo purple](frontend-site/src/assets/note_purple.png)
-![Custom logo white](frontend-site/src/assets/note_white.png)
+<img src="frontend-site/src/assets/note_purple.png" alt="folder" style={{width: '50%'}} />
+<img src="frontend-site/src/assets/note_white.png" alt="folder" style={{width: '50%'}} />
 
 ## Data processing pipeline
 
@@ -271,19 +267,16 @@ The following one-time data processing steps were performed sequentially:
 
 ## Project limitations and next steps
 
-- Although this project was limited by time and resources, it serves as a proof-of-concept for the exciting capabilities when PostgreSQL and pgvector are deployed on Render
-- The input dataset contained ~12.4M rows, with ~128K rows enriched with lyric data
-- Embeddings were computed on a local laptop and stored in a Render Postgres database with 15 GB of storage but only 256 MB of RAM and 0.1 CPU
-- The backend was deployed on a Render Web Service with 512 MB of RAM and 0.1 CPU
-- Due to these resource constraints, only a maximum of ~700K embeddings were actually stored in the database, and an IVFFlat index could not be computed due to out-of-memory (OOM) errors and database shutdown issues
-- This resulted in semantic search queries taking ~7 minutes or failing with OOM errors
-- To demonstrate the system's capabilities, a sample table of ~50K records is used for database calls to showcase the speed of the IVFFlat index in action
-- If this project had access to more time and resources with greater compute power, next steps would involve:
-  - Investing in additional data cleaning to join a majority of songs data to lyrics for more comprehensive embeddings
-  - Storing embeddings for all ~12.4M records in a larger, better-resourced database
-  - Building optimized pipelines to safely load those embeddings into the database
-  - Performing IVFFlat indexing with a lists parameter of approximately ~3525 (`sqrt(~12.4M)`) as recommended in [this article](https://www.tigerdata.com/blog/nearest-neighbor-indexes-what-are-ivfflat-indexes-in-pgvector-and-how-do-they-work)
-  - Implementing additional optimizations to minimize latency in inter-service communication
+Although this project was limited by time and resources, it serves as a proof-of-concept for the exciting capabilities when PostgreSQL and pgvector are deployed on Render. The input dataset contained approximately 12.4 million rows, with about 128,000 rows enriched with lyric data. Embeddings were stored in a Render Postgres database with 15 GB of storage but only 256 MB of RAM and 0.1 CPU. The backend was deployed on a Render Web Service with 512 MB of RAM and 0.1 CPU.
+
+Due to these resource constraints, only ~700,000 embeddings were actually stored in the database, and an IVFFlat index could not be computed due to out-of-memory (OOM) errors and database shutdown issues. This resulted in semantic search queries taking around 7 minutes or failing with OOM errors. To demonstrate the system's capabilities, a sample table of approximately 55,000 records is used for database calls to showcase the speed of the IVFFlat index in action.
+
+If this project had access to more time and resources with greater compute power, next steps would involve:
+- Investing in additional data cleaning to join a majority of songs data to lyrics for more comprehensive embeddings
+- Storing embeddings for all ~12.4M records in a larger, better-resourced database
+- Building optimized pipelines to safely load those embeddings into the database
+- Performing IVFFlat indexing with a lists parameter of approximately ~3525 (`sqrt(~12.4M)`) as recommended in [this article](https://www.tigerdata.com/blog/nearest-neighbor-indexes-what-are-ivfflat-indexes-in-pgvector-and-how-do-they-work)
+- Implementing additional optimizations to minimize latency in inter-service communication
 
 ## Resources
 
