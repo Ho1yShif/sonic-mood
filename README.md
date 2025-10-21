@@ -1,6 +1,4 @@
-# Sonic mood
-
-## sonic-mood.onrender.com
+# [Sonic mood](https://sonic-mood.onrender.com)
 
 Sonic Mood is an AI-powered music recommendation app that demonstrates how to deploy semantic search at scale using [Render](https://render.com) and [pgvector](https://github.com/pgvector/pgvector). Enter a mood or vibe, and receive a personalized playlist drawn from over 12 million songs.
 
