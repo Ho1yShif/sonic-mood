@@ -167,6 +167,10 @@ SELECT song_name, band, popularity_score FROM song_embeddings ORDER BY embedding
 
 ### Decision rationale
 
+<details>
+
+<summary>Learn the why behind design decisions in this application.</summary>
+
 #### Why Fireworks AI?
 
 Fireworks AI provides enterprise-grade inference infrastructure optimized for speed and reliability. With sub-second response times for both embeddings and LLM generation, it ensures a responsive user experience for real-time music recommendations. Competitive pricing and generous rate limits made it feasible to process embeddings for over 12 million songs during the data preparation phase.
@@ -206,6 +210,8 @@ The Spotify API imposes rate limits and adds latency to each request. Since popu
 #### Why upload embeddings to the database in incremental batches?
 
 Data processing uploads local cached embeddings in chunks of 5,000. This is done out of necessity given the constraint of over 12.4M records in the dataset, high-dimensional `vector(2000)` embedding data types, and only a few days to complete the project. The sonic mood application will immediately work while allowing the pool of available songs to expand as more embeddings are loaded into the vector store incrementally.
+
+</details>
 
 ## Assumptions
 
@@ -253,20 +259,19 @@ The following one-time data processing steps were performed sequentially:
 
 ## Project limitations and next steps
 
-- Although this project was limited by time and resources, it serves as a proof-of concept for the exciting capabilities when PostgreSQL and pgvector are deployed on Render
-- The input dataset contained ~12.4M rows, ~128K rows of which were enriched with lyric data
-- Embeddings were computed on a local laptop and stored in a Render Postgres database with 15 GV of GB but only 256 MB of RAM and 0.1 CPU
-- The backend was deployed on a Render Web Service with 512 GB of RAM and 0.1 CPU
-- Therefore, only ~700K embeddings were actually stored in the database, and an IVFFlat index could not be computed on the data due to OOM errors and database shutdown issues
-- This in turn meant that requests to the database to pull songs were either taking ~7 minutes or OOMing
-- Therefore, 
-- A sample table of <insert count of records here> records is used for calls to the database to showcase the speed of the IVFFlat index in action
-- If this project had access to more time and resources with heavier compute, next steps would involve:
-  - Investing in additional data cleaning to join a majority of songs data to lyrics for embeddings with more comprehensive information
-  - Storing embeddings for all ~12.4M records in a larger, better resourced database
-  - Building optimized pipelines to land those embeddings safely in the database
+- Although this project was limited by time and resources, it serves as a proof-of-concept for the exciting capabilities when PostgreSQL and pgvector are deployed on Render
+- The input dataset contained ~12.4M rows, with ~128K rows enriched with lyric data
+- Embeddings were computed on a local laptop and stored in a Render Postgres database with 15 GB of storage but only 256 MB of RAM and 0.1 CPU
+- The backend was deployed on a Render Web Service with 512 MB of RAM and 0.1 CPU
+- Due to these resource constraints, only a maximum of ~700K embeddings were actually stored in the database, and an IVFFlat index could not be computed due to out-of-memory (OOM) errors and database shutdown issues
+- This resulted in semantic search queries taking ~7 minutes or failing with OOM errors
+- To demonstrate the system's capabilities, a sample table of ~50K records is used for database calls to showcase the speed of the IVFFlat index in action
+- If this project had access to more time and resources with greater compute power, next steps would involve:
+  - Investing in additional data cleaning to join a majority of songs data to lyrics for more comprehensive embeddings
+  - Storing embeddings for all ~12.4M records in a larger, better-resourced database
+  - Building optimized pipelines to safely load those embeddings into the database
   - Performing IVFFlat indexing with a lists parameter of approximately ~3525 (`sqrt(~12.4M)`) as recommended in [this article](https://www.tigerdata.com/blog/nearest-neighbor-indexes-what-are-ivfflat-indexes-in-pgvector-and-how-do-they-work)
-  - Providing additional optimizations to minimize latency related to communication between services
+  - Implementing additional optimizations to minimize latency in inter-service communication
 
 ## Resources
 
