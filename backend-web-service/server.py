@@ -31,7 +31,7 @@ client = OpenAI(
 spotify_client_id = os.environ.get("SPOTIFY_CLIENT_ID")
 spotify_client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
 
-# Debug logging to see what we're getting
+# Check if Spotify credentials are available
 logger.info(f"Spotify Client ID present: {bool(spotify_client_id)}")
 logger.info(f"Spotify Client Secret present: {bool(spotify_client_secret)}")
 
@@ -132,7 +132,7 @@ Respond only with the song, no other text.""",
     )
 
     model_answer = response.choices[0].message.content.split("</think>")[-1].strip()
-    logger.debug(f"HyDE model response: {model_answer}")
+
     return model_answer
 
 
@@ -164,7 +164,6 @@ Respond only with the name of the playlist, no other text.""",
 
     model_answer = response.choices[0].message.content.split("</think>")[-1].strip()
 
-    logger.debug(f"Playlist name model response: {model_answer}")
     return model_answer
 
 
@@ -184,9 +183,6 @@ async def add_spotify_links(songs: list[Song]) -> list[Song]:
         # Check if we already have the link cached
         if cache_key in spotify_link_cache:
             song["spotifyLink"] = spotify_link_cache[cache_key]
-            logger.debug(
-                f"Using cached Spotify link for {song['title']} by {song['artist']}"
-            )
             continue
 
         # Not in cache, fetch from Spotify API with retry logic
@@ -198,14 +194,6 @@ async def add_spotify_links(songs: list[Song]) -> list[Song]:
             if results["tracks"]["items"]:
                 track = results["tracks"]["items"][0]
                 song["spotifyLink"] = track["external_urls"]["spotify"]
-                logger.debug(
-                    f"Found Spotify link for {song['title']} by {song['artist']}: {song['spotifyLink']}"
-                )
-            else:
-                logger.debug(
-                    f"No Spotify link found for {song['title']} by {song['artist']}"
-                )
-                song["spotifyLink"] = None
         else:
             # Search failed after retries - set to None silently
             song["spotifyLink"] = None
