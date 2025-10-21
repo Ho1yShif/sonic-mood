@@ -4,6 +4,9 @@ Sonic Mood is an AI-powered music recommendation app that demonstrates how to de
 
 This application showcases how to use [pgvector](https://github.com/pgvector/pgvector) with Render’s Postgres resources using the [installation steps](https://github.com/pgvector/pgvector?tab=readme-ov-file#installation) and a `CREATE EXTENSION vector;` command.
 
+## Demo
+
+
 ## Quickstart
 
 ### Prerequisites
@@ -90,9 +93,7 @@ sanic server
    
    The frontend will start on `http://localhost:5173`
 
-### Next steps
-
-- For production deployment, see Render's documentation on deploying [web services](https://render.com/docs/web-services) and [static sites](https://render.com/docs/static-sites).
+For production deployment, see Render's documentation on deploying [web services](https://render.com/docs/web-services) and [static sites](https://render.com/docs/static-sites).
 
 ## Architecture
 
@@ -242,9 +243,26 @@ The following one-time data processing steps were performed sequentially:
    - Instead, joined against an [existing Genius lyrics dataset](https://huggingface.co/datasets/sebastiandizon/genius-song-lyrics) from Hugging Face
    - Successfully matched 128,667 songs (~1% of all songs) with lyrics data using fuzzy matching and normalization
 
-1. **Database storage**: Loaded `enriched_songs` form the previous step into the PostgreSQL database with pgvector extension enabled
+1. **Database storage**: Loaded `enriched_songs` from the previous step into the PostgreSQL database with pgvector extension enabled
 
-1. **Embedding generation**: Created vector embeddings for each song using `song_name`, `band`, and `lyrics` (when available) to capture comprehensive semantic information
+1. **Embedding generation**: Created vector embeddings for each song using `song_name`, `band`, and `lyrics` (when available) via `qwen3-embedding-8b` to capture comprehensive semantic information
+
+## Project limitations and next steps
+
+- Although this project was limited by time and resources, it serves as a proof-of concept for the exciting capabilities when PostgreSQL and pgvector are deployed on Render
+- The input dataset contained ~12.4M rows, ~128K rows of which were enriched with lyric data
+- Embeddings were computed on a local laptop and stored in a Render Postgres database with 15 GV of GB but only 256 MB of RAM and 0.1 CPU
+- The backend was deployed on a Render Web Service with 512 GB of RAM and 0.1 CPU
+- Therefore, only ~700K embeddings were actually stored in the database, and an IVFFlat index could not be computed on the data due to OOM errors and database shutdown issues
+- This in turn meant that requests to the database to pull songs were either taking ~7 minutes or OOMing
+- Therefore, 
+- A sample table of <insert count of records here> records is used for calls to the database to showcase the speed of the IVFFlat index in action
+- If this project had access to more time and resources with heavier compute, next steps would involve:
+  - Investing in additional data cleaning to join a majority of songs data to lyrics for embeddings with more comprehensive information
+  - Storing embeddings for all ~12.4M records in a larger, better resourced database
+  - Building optimized pipelines to land those embeddings safely in the database
+  - Performing IVFFlat indexing with a lists parameter of approximately ~3525 (`sqrt(~12.4M)`) as recommended in [this article](https://www.tigerdata.com/blog/nearest-neighbor-indexes-what-are-ivfflat-indexes-in-pgvector-and-how-do-they-work)
+  - Providing additional optimizations to minimize latency related to communication between services
 
 ## Resources
 
