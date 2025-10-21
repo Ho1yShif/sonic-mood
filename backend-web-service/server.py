@@ -1,4 +1,8 @@
 import os
+import time
+import asyncio
+from urllib3.exceptions import MaxRetryError, NewConnectionError
+from requests.exceptions import ConnectionError, Timeout, RequestException
 
 from openai import OpenAI
 from sanic import Sanic
@@ -54,6 +58,43 @@ else:
 # Cache for Spotify links to avoid redundant API calls
 # Key: (title, artist) tuple, Value: Spotify link (or None if not found)
 spotify_link_cache: dict[tuple[str, str], str | None] = {}
+
+
+async def search_spotify_with_retry(
+    spotify_client: Spotify, query: str, max_retries: int = 3
+) -> dict | None:
+    """
+    Search Spotify with retry logic for connection errors.
+    Returns None if all retries fail or if it's a non-retryable error.
+    """
+    for attempt in range(max_retries):
+        try:
+            results = spotify_client.search(q=query, type="track", limit=1)
+            return results
+        except (ConnectionError, Timeout, MaxRetryError, NewConnectionError) as e:
+            # These are connection-related errors that we can retry
+            if attempt < max_retries - 1:
+                wait_time = 2**attempt  # Exponential backoff: 1s, 2s, 4s
+                logger.warning(
+                    f"Spotify connection error (attempt {attempt + 1}/{max_retries}): {e}. Retrying in {wait_time}s..."
+                )
+                await asyncio.sleep(wait_time)
+                continue
+            else:
+                logger.warning(
+                    f"Spotify connection failed after {max_retries} attempts: {e}"
+                )
+                return None
+        except RequestException as e:
+            # Other request errors (like 429 rate limit) - log but don't retry
+            logger.warning(f"Spotify request error: {e}")
+            return None
+        except Exception as e:
+            # Unexpected errors - log but don't retry
+            logger.warning(f"Unexpected Spotify error: {e}")
+            return None
+
+    return None
 
 
 async def embed(text: str) -> list[float]:
@@ -131,6 +172,7 @@ async def add_spotify_links(songs: list[Song]) -> list[Song]:
     """
     Search for each song on Spotify and add the Spotify link if found.
     Uses caching to avoid redundant API calls for the same song.
+    Handles connection errors gracefully with retry logic.
     """
     if not spotify:
         logger.warning("Spotify client not initialized. Skipping Spotify links.")
@@ -147,12 +189,11 @@ async def add_spotify_links(songs: list[Song]) -> list[Song]:
             )
             continue
 
-        # Not in cache, fetch from Spotify API
-        try:
-            # Search for the song on Spotify using title and artist
-            query = f"track:{song['title']} artist:{song['artist']}"
-            results = spotify.search(q=query, type="track", limit=1)
+        # Not in cache, fetch from Spotify API with retry logic
+        query = f"track:{song['title']} artist:{song['artist']}"
+        results = await search_spotify_with_retry(spotify, query)
 
+        if results is not None:
             # Check if we found any tracks
             if results["tracks"]["items"]:
                 track = results["tracks"]["items"][0]
@@ -165,17 +206,12 @@ async def add_spotify_links(songs: list[Song]) -> list[Song]:
                     f"No Spotify link found for {song['title']} by {song['artist']}"
                 )
                 song["spotifyLink"] = None
-
-            # Cache the result (whether we found a link or not)
-            spotify_link_cache[cache_key] = song["spotifyLink"]
-
-        except Exception as e:
-            logger.error(
-                f"Error searching Spotify for {song['title']} by {song['artist']}: {e}"
-            )
+        else:
+            # Search failed after retries - set to None silently
             song["spotifyLink"] = None
-            # Cache the None result to avoid retrying failed lookups
-            spotify_link_cache[cache_key] = None
+
+        # Cache the result (whether we found a link or not)
+        spotify_link_cache[cache_key] = song["spotifyLink"]
 
     return songs
 
