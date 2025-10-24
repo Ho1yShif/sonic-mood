@@ -159,7 +159,7 @@ graph LR
 - Retrieves Spotify links for recommended songs (with in-memory caching)
 - Generates creative playlist titles via [`qwen3-235b-a22b-instruct-2507`](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507), inspired by Spotify's daylist feature
 
-**Frontend** (Static site): Displays personalized playlists in a modern, responsive UI with glassmorphic elements and responsive design.
+**Frontend** (Static site): Displays personalized playlists in a modern UI with glassmorphic elements and responsive design.
 
 **Render deployments**:
 
