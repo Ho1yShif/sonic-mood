@@ -64,7 +64,7 @@ async def search_spotify_with_retry(
     spotify_client: Spotify, query: str, max_retries: int = 3
 ) -> dict | None:
     """
-    Search Spotify with retry logic for connection errors.
+    Search Spotify with retry logic for connection errors and rate limits.
     Returns None if all retries fail or if it's a non-retryable error.
     """
     for attempt in range(max_retries):
@@ -86,9 +86,31 @@ async def search_spotify_with_retry(
                 )
                 return None
         except RequestException as e:
-            # Other request errors (like 429 rate limit) - log but don't retry
-            logger.warning(f"Spotify request error: {e}")
-            return None
+            # Check if this is a rate limit error (429)
+            error_str = str(e).lower()
+            if "429" in error_str or "rate limit" in error_str:
+                # Try to extract retry-after time from error message
+                retry_after = 1  # Default to 1 second
+                if "retry will occur after:" in error_str:
+                    try:
+                        # Extract the number from "Retry will occur after: X"
+                        import re
+
+                        match = re.search(r"retry will occur after:\s*(\d+)", error_str)
+                        if match:
+                            retry_after = int(match.group(1))
+                    except (ValueError, AttributeError):
+                        pass
+
+                logger.warning(
+                    f"Spotify rate limit hit. Waiting {retry_after}s before retry..."
+                )
+                await asyncio.sleep(retry_after)
+                continue
+            else:
+                # Other request errors - log but don't retry
+                logger.warning(f"Spotify request error: {e}")
+                return None
         except Exception as e:
             # Unexpected errors - log but don't retry
             logger.warning(f"Unexpected Spotify error: {e}")
@@ -172,18 +194,24 @@ async def add_spotify_links(songs: list[Song]) -> list[Song]:
     Search for each song on Spotify and add the Spotify link if found.
     Uses caching to avoid redundant API calls for the same song.
     Handles connection errors gracefully with retry logic.
+    Adds small delays between requests to avoid rate limits.
     """
     if not spotify:
         logger.warning("Spotify client not initialized. Skipping Spotify links.")
         return songs
 
-    for song in songs:
+    for i, song in enumerate(songs):
         cache_key = (song["title"], song["artist"])
 
         # Check if we already have the link cached
         if cache_key in spotify_link_cache:
             song["spotifyLink"] = spotify_link_cache[cache_key]
             continue
+
+        # Add a small delay between requests to avoid rate limits
+        # Only add delay if this isn't the first request
+        if i > 0:
+            await asyncio.sleep(0.1)  # 100ms delay between requests
 
         # Not in cache, fetch from Spotify API with retry logic
         query = f"track:{song['title']} artist:{song['artist']}"
