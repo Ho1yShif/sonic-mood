@@ -269,7 +269,7 @@ The following one-time data processing steps were performed sequentially:
 
 Although this project was limited by time and resources, it serves as a proof-of-concept for the exciting capabilities when PostgreSQL and pgvector are deployed on Render. The input dataset contained approximately 12.4 million rows, with about 128,000 rows enriched with lyric data. Embeddings were stored in a Render Postgres database with 15 GB of storage but only 256 MB of RAM and 0.1 CPU. The backend was deployed on a Render Web Service with 512 MB of RAM and 0.1 CPU.
 
-Due to these resource constraints, only ~700,000 embeddings were actually stored in the database, and an IVFFlat index could not be computed due to out-of-memory (OOM) errors and database shutdown issues. This resulted in semantic search queries taking around 7 minutes or failing with OOM errors. To demonstrate the system's capabilities, a sample table of approximately 55,000 records is used for database calls to showcase the speed of the IVFFlat index in action.
+Due to these resource constraints, only ~700,000 embeddings were actually stored in the database, and an IVFFlat index could not be computed due to out-of-memory (OOM) errors and database shutdown issues. This resulted in semantic search queries taking around 7 minutes or failing with OOM errors. To demonstrate the system's capabilities, a `sample_embeddings` table of 25,000 records is used for database calls to showcase the speed of the IVFFlat index in action (with a `lists=25` parameter).
 
 If this project had access to more time and resources with greater compute power, next steps would involve:
 - Investing in additional data cleaning to join a majority of songs data to lyrics for more comprehensive embeddings
